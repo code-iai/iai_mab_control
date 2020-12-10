@@ -62,12 +62,6 @@ $ source ~/catkin_ws/source.bash
 
 Alternatively, start a new shell if you source it in _~/.bashrc_.
 
-Finally, make the acquisition.py_ script executable.
-
-```
-$ chmod +x ~/catkin_ws/src/iai_mab_control/scripts/acquisition.py
-```
-
 ## Usage
 
 The bot can be started using _rosrun_.

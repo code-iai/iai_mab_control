@@ -2,5 +2,10 @@
 <launch>
 	<node name="keyboard_pub" pkg="keyboard_pub" type="keyboard_pub_node"/>
 
-	<node name="keyboard_controller" pkg="iai_mab_control" type="keyboard_controller.py" output="screen"/>
+	<arg name="simulation" default="simulation"/>
+	<arg name="command_topic" default="command_topic"/>
+	<node name="keyboard_controller" pkg="iai_mab_control" type="keyboard_controller.py" output="screen">
+		<param name="simulation" value="$(arg simulation)"/>
+		<param name="command_topic" value="$(arg command_topic)"/>
+	</node>
 </launch>

@@ -100,8 +100,8 @@ _keyboard_controller.launch_ launches a keyboard controller.
 $ roslaunch iai_mab_control keyboard_controller.launch
 ```
 
-If the bot is used in simulation the additional parameters __simulation_ and __command_topic_ can be passed.
+If the bot is used in simulation the additional parameters _simulation_ and _command_topic_ can be passed.
 
 ```
-$ roslaunch iai_mab_control keyboard_controller.launch _simulation:=True _command_topic:=arm_controller/command
+$ roslaunch iai_mab_control keyboard_controller.launch simulation:=True command_topic:=arm_controller/command
 ```

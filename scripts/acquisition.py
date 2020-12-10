@@ -2,7 +2,7 @@
 
 from actionlib import SimpleActionClient
 from geometry_msgs.msg import Pose, PoseStamped
-from iai_scanning_table_action.msg import scanning_tableAction, scanning_tableGoal
+from iai_scanning_table_msgs.msg import scanning_tableAction, scanning_tableGoal
 from moveit_commander import MoveGroupCommander, PlanningSceneInterface, RobotCommander
 from tf2_msgs.msg import TFMessage
 

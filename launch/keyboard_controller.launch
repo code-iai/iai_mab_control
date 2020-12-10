@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+	<node name="keyboard_pub" pkg="keyboard_pub" type="keyboard_pub_node"/>
+
+	<node name="keyboard_controller" pkg="iai_mab_control" type="keyboard_controller.py" output="screen"/>
+</launch>

@@ -91,13 +91,18 @@ def move_joint(joint, goal, radians=False):
     move_group.go(goals, wait=True)
     move_group.stop()
 
-def move_to(x, y, z, face_turntable=True):
+def move_to(position, orientation=None):
     pose = Pose()
-    pose.position.x = x
-    pose.position.y = y
-    pose.position.z = z
+    pose.position.x = position[0]
+    pose.position.y = position[1]
+    pose.position.z = position[2]
 
-    if face_turntable:
+    if orientation:
+        pose.orientation.x = orientation[0]
+        pose.orientation.y = orientation[1]
+        pose.orientation.z = orientation[2]
+        pose.orientation.w = orientation[3]
+    else:
         angleY = math.atan2(pose.position.z - turntable_pos[2], pose.position.y - turntable_pos[1])
         angleZ = math.atan2(turntable_pos[1] - pose.position.y, turntable_pos[0] - pose.position.x)
         quaternion = tf.transformations.quaternion_from_euler(0, angleY, angleZ)
@@ -105,8 +110,6 @@ def move_to(x, y, z, face_turntable=True):
         pose.orientation.y = quaternion[1]
         pose.orientation.z = quaternion[2]
         pose.orientation.w = quaternion[3]
-    else:
-        pose.orientation.w = 1.0
 
     move_group.set_pose_target(pose)
     move_group.go(wait=True)
@@ -123,5 +126,5 @@ def set_turntable_angle(angle, radians=False):
 if __name__ == '__main__':
     init()
 
-    move_to(0.2, -0.35, 0.3)
+    move_to([0.2, -0.35, 0.3])
 

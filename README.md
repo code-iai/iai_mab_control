@@ -70,11 +70,17 @@ The bot can be started using _rosrun_.
 $ rosrun iai_mab_control acquisition.py
 ```
 
-If the bot is used in simulation an additional parameter __simulation_ can be passed and set to _True_ for the bot to not wait for the turntable and to interact at a higher speed.
+The following optional parameters can be set by adding them to the _rosrun_ command.
 
-```
-$ rosrun iai_mab_control acquisition.py _simulation:=True
-```
+| Parameter     | Description                                                                                                                                        | Example                            |
+|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| camera_size   | Width, length and height of the attached camera.                                                                                                   | _camera_size:='[0.1, 0.1, 0.1]'    |
+| num_photos    | Number of photos that should be taken.                                                                                                             | _num_photos:=100                   |
+| object_size   | Width, length and height of the object on the turntable.                                                                                           | _object_size:='[0.2, 0.2, 0.2]'    |
+| photobox_pos  | Position of the center of the ground plane of the photobox.                                                                                        | _photobox_pos:='[0.0, -0.7, 0.0]'  |
+| photobox_size | Width, length and height of the photobox.                                                                                                          | _photobox_size:='[1.0, 1.0, 1.0]'  |
+| simulation    | Defines whether the script is run in simulation or not. If True the robot arm will move faster and not wait for the turntable to become available. | _simulation:=True                  |
+| turntable_pos | Position of the center of the turntable.                                                                                                           | _turntable_pos:='[0.0, -0.7, 0.1]' |
 
 The easiest way to work with the bot during development is to use the provided launch files.
 

@@ -13,11 +13,17 @@ import tf
 
 def init():
     global move_group, robot, scene, turntable_client
-    global simulation, turntable_pos
+    global camera_size, num_photos, object_size, photobox_pos, photobox_size, simulation, turntable_pos
 
     rospy.init_node('photogrammetry')
+
+    camera_size = rospy.get_param('~camera_size', [0.1, 0.1, 0.1])
+    num_photos = rospy.get_param('~num_photos', 10)
+    object_size = rospy.get_param('~object_size', [0.2, 0.2, 0.2])
+    photobox_pos = rospy.get_param('~photobox_pos', [0.0, -0.7, 0.0])
+    photobox_size = rospy.get_param('~photobox_size', [1.0, 1.0, 1.0])
     simulation = rospy.get_param('~simulation', False)
-    turntable_pos = [0.0, -0.7, 0.1] # TODO: get position from GUI configuration (rospy.get_param())
+    turntable_pos = rospy.get_param('~turntable_pos', [0.0, -0.7, 0.1])
 
     move_group = MoveGroupCommander('manipulator')
     move_group.set_max_velocity_scaling_factor(1.0 if simulation else 0.1)
@@ -40,28 +46,31 @@ def init():
     scene.add_plane('ground', ps)
 
     # add photobox
-    ps.pose.position.x = 0.5
-    ps.pose.position.y = -0.7
-    ps.pose.position.z = 0.5
-    scene.add_box('box_wall_left', ps, (0.1, 1.0, 1.0))
+    ps.pose.position.x = photobox_size[0] / 2
+    ps.pose.position.y = photobox_pos[1]
+    ps.pose.position.z = photobox_size[2] / 2
+    scene.add_box('box_wall_left', ps, (0.01, photobox_size[1], photobox_size[2]))
 
-    ps.pose.position.x = -0.5
-    ps.pose.position.y = -0.7
-    ps.pose.position.z = 0.5
-    scene.add_box('box_wall_right', ps, (0.1, 1.0, 1.0))
+    ps.pose.position.x = -photobox_size[0] / 2
+    ps.pose.position.y = photobox_pos[1]
+    ps.pose.position.z = photobox_size[2] / 2
+    scene.add_box('box_wall_right', ps, (0.01, photobox_size[1], photobox_size[2]))
 
-    ps.pose.position.x = 0.0
-    ps.pose.position.y = -1.25
-    ps.pose.position.z = 0.5
-    scene.add_box('box_wall_back', ps, (1.0, 0.1, 1.0))
+    ps.pose.position.x = photobox_pos[0]
+    ps.pose.position.y = photobox_pos[1] - photobox_size[1] / 2
+    ps.pose.position.z = photobox_size[2] / 2
+    scene.add_box('box_wall_back', ps, (photobox_size[0], 0.01, photobox_size[2]))
 
-    ps.pose.position.x = 0.0
-    ps.pose.position.y = -0.7
-    ps.pose.position.z = 0.05
-    scene.add_box('box_ground', ps, (1.0, 1.0, 0.1))
+    ps.pose.position.x = photobox_pos[0]
+    ps.pose.position.y = photobox_pos[1]
+    ps.pose.position.z = 0.0
+    scene.add_box('box_ground', ps, (photobox_size[0], photobox_size[1], 0.01))
 
     # add object on turntable
-    # TODO: add box for object on turntable
+    ps.pose.position.x = turntable_pos[0]
+    ps.pose.position.y = turntable_pos[1]
+    ps.pose.position.z = turntable_pos[2] + object_size[2] / 2
+    scene.add_box('object', ps, object_size)
 
     # add camera
     eef_link = move_group.get_end_effector_link()
@@ -71,9 +80,8 @@ def init():
 
     ps = PoseStamped()
     ps.header.frame_id = eef_link
-    ps.pose.position.x = 0.05
-    scene.attach_box(eef_link, 'camera', ps, (0.1, 0.1, 0.1))
-
+    ps.pose.position.x = camera_size[0] / 2
+    scene.attach_box(eef_link, 'camera', ps, camera_size)
 
 def send_turntable_tf(msg, tb):
     try:
@@ -104,6 +112,7 @@ def move_to(position, orientation=None):
         pose.orientation.w = orientation[3]
     else:
         angleY = math.atan2(pose.position.z - turntable_pos[2], pose.position.y - turntable_pos[1])
+        #angleY = math.atan2(pose.position.z - turntable_pos[2] - object_size[2] / 2, pose.position.y - turntable_pos[1]) # point to middle of object
         angleZ = math.atan2(turntable_pos[1] - pose.position.y, turntable_pos[0] - pose.position.x)
         quaternion = tf.transformations.quaternion_from_euler(0, angleY, angleZ)
         pose.orientation.x = quaternion[0]

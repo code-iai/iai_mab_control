@@ -14,18 +14,21 @@ import tf
 
 def init():
     global move_group, robot, scene, turntable_client
-    global camera_size, num_photos, object_size, photobox_pos, photobox_size, simulation, turntable_pos # TODO: use photobox_pos with adjusted z value for turntable_pos?
+    global camera_size, distance_camera_object, num_positions, num_spins, object_size, simulation, turntable_pos
 
     rospy.init_node('photogrammetry')
 
     camera_size = rospy.get_param('~camera_size', [0.1, 0.1, 0.1])
-    num_photos = rospy.get_param('~num_photos', 10)
+    distance_camera_object = rospy.get_param('~distance_camera_object', 0.2)
+    num_positions = rospy.get_param('~num_positions', 15)
+    num_spins = rospy.get_param('~num_spins', 8)
     object_size = numpy.array(rospy.get_param('~object_size', [0.2, 0.2, 0.2]))
     object_size[:2] = max(object_size[:2])
     photobox_pos = rospy.get_param('~photobox_pos', [0.0, -0.7, 0.0])
     photobox_size = rospy.get_param('~photobox_size', [1.0, 1.0, 1.0])
     simulation = rospy.get_param('~simulation', False)
-    turntable_pos = rospy.get_param('~turntable_pos', [0.0, -0.7, 0.1])
+    turntable_pos = photobox_pos
+    turntable_pos[2] += 0.1 # TODO: measure turntable z-value in lab
 
     move_group = MoveGroupCommander('manipulator')
     move_group.set_max_velocity_scaling_factor(1.0 if simulation else 0.1)
@@ -144,12 +147,10 @@ def set_turntable_angle(angle, radians=False):
     return True if simulation else turntable_client.wait_for_result(rospy.Duration(0))
 
 def create_arm_positions(n=15):
-    distance = 0.1 # TODO: calculate by considering cameras field of view and objects size
-
     min_y = turntable_pos[1]
-    max_y = turntable_pos[1] + object_size[1] / 2 + camera_size[1] + distance
+    max_y = turntable_pos[1] + object_size[1] / 2 + camera_size[1] + distance_camera_object
     min_z = turntable_pos[2]
-    max_z = turntable_pos[2] + object_size[2] + camera_size[1] + distance
+    max_z = turntable_pos[2] + object_size[2] + camera_size[1] + distance_camera_object
 
     div = object_size[1] / 2 + object_size[2]
     positions = []
@@ -163,11 +164,13 @@ def create_arm_positions(n=15):
 if __name__ == '__main__':
     init()
 
-    positions = create_arm_positions()
+    positions = create_arm_positions(num_positions)
     for position in positions:
-        move_to(position, face='top')
-        move_to(position)
-        move_to(position, face='bottom')
+        for face in ['top', 'center', 'bottom']:
+            if move_to(position, face=face):
+                for i in range(num_spins):
+                    set_turntable_angle(360 * i / num_positions)
+                    # TODO: take photo
         rospy.sleep(1)
     move_home()
 

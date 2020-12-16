@@ -7,6 +7,7 @@ from moveit_commander import MoveGroupCommander, PlanningSceneInterface, RobotCo
 from tf2_msgs.msg import TFMessage
 
 import math
+import numpy
 import rospy
 import sys
 import tf
@@ -111,8 +112,8 @@ def move_to(position, orientation=None):
         pose.orientation.z = orientation[2]
         pose.orientation.w = orientation[3]
     else:
-        angleY = math.atan2(pose.position.z - turntable_pos[2], pose.position.y - turntable_pos[1])
-        #angleY = math.atan2(pose.position.z - turntable_pos[2] - object_size[2] / 2, pose.position.y - turntable_pos[1]) # point to middle of object
+        #angleY = math.atan2(pose.position.z - turntable_pos[2], pose.position.y - turntable_pos[1]) # point towards center of turntable
+        angleY = math.atan2(pose.position.z - turntable_pos[2] - object_size[2] / 2, pose.position.y - turntable_pos[1]) # point towards center of object
         angleZ = math.atan2(turntable_pos[1] - pose.position.y, turntable_pos[0] - pose.position.x)
         quaternion = tf.transformations.quaternion_from_euler(0, angleY, angleZ)
         pose.orientation.x = quaternion[0]
@@ -132,8 +133,26 @@ def set_turntable_angle(angle, radians=False):
     turntable_client.send_goal(msg)
     return True if simulation else turntable_client.wait_for_result(rospy.Duration(0))
 
+def create_arm_positions(n=15):
+    distance = 0.1 # TODO: calculate by considering cameras field of view and objects size
+
+    min_y = turntable_pos[1]
+    max_y = turntable_pos[1] + object_size[1] / 2 + camera_size[1] + distance
+    min_z = turntable_pos[2]
+    max_z = turntable_pos[2] + object_size[2] + camera_size[1] + distance
+
+    positions = []
+    for y in numpy.linspace(min_y, max_y, n * object_size[1] / object_size[2]):
+        positions.append([0.0, y, max_z])
+    for z in numpy.linspace(max_z, min_z, n * object_size[2] / object_size[1]):
+        positions.append([0.0, max_y, z])
+
+    return positions
+
 if __name__ == '__main__':
     init()
 
-    move_to([0.2, -0.35, 0.3])
+    positions = create_arm_positions()
+    for position in positions:
+        move_to(position)
 

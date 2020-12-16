@@ -20,7 +20,8 @@ def init():
 
     camera_size = rospy.get_param('~camera_size', [0.1, 0.1, 0.1])
     num_photos = rospy.get_param('~num_photos', 10)
-    object_size = rospy.get_param('~object_size', [0.2, 0.2, 0.2])
+    object_size = numpy.array(rospy.get_param('~object_size', [0.2, 0.2, 0.2]))
+    object_size[:2] = max(object_size[:2])
     photobox_pos = rospy.get_param('~photobox_pos', [0.0, -0.7, 0.0])
     photobox_size = rospy.get_param('~photobox_size', [1.0, 1.0, 1.0])
     simulation = rospy.get_param('~simulation', False)
@@ -167,4 +168,6 @@ if __name__ == '__main__':
         move_to(position, face='top')
         move_to(position)
         move_to(position, face='bottom')
+        rospy.sleep(1)
+    move_home()
 

@@ -14,7 +14,7 @@ import tf
 
 def init():
     global move_group, robot, scene, turntable_client
-    global camera_size, num_photos, object_size, photobox_pos, photobox_size, simulation, turntable_pos
+    global camera_size, num_photos, object_size, photobox_pos, photobox_size, simulation, turntable_pos # TODO: use photobox_pos with adjusted z value for turntable_pos?
 
     rospy.init_node('photogrammetry')
 
@@ -91,16 +91,18 @@ def send_turntable_tf(msg, tb):
         pass
 
 def move_home():
-    move_group.go([0, math.radians(-90), 0, math.radians(-90), 0, 0], wait=True)
+    result = move_group.go([0, math.radians(-90), 0, math.radians(-90), 0, 0], wait=True)
     move_group.stop()
+    return result
 
 def move_joint(joint, goal, radians=False):
     goals = move_group.get_current_joint_values()
     goals[move_group.get_joints().index(joint)] = goal if radians else math.radians(goal)
-    move_group.go(goals, wait=True)
+    result = move_group.go(goals, wait=True)
     move_group.stop()
+    return result
 
-def move_to(position, orientation=None):
+def move_to(position, orientation=None, face=None):
     pose = Pose()
     pose.position.x = position[0]
     pose.position.y = position[1]
@@ -112,19 +114,26 @@ def move_to(position, orientation=None):
         pose.orientation.z = orientation[2]
         pose.orientation.w = orientation[3]
     else:
-        #angleY = math.atan2(pose.position.z - turntable_pos[2], pose.position.y - turntable_pos[1]) # point towards center of turntable
-        angleY = math.atan2(pose.position.z - turntable_pos[2] - object_size[2] / 2, pose.position.y - turntable_pos[1]) # point towards center of object
-        angleZ = math.atan2(turntable_pos[1] - pose.position.y, turntable_pos[0] - pose.position.x)
-        quaternion = tf.transformations.quaternion_from_euler(0, angleY, angleZ)
+        angle_y = None
+        if face == 'top':
+            angle_y = math.atan2(pose.position.z - turntable_pos[2] - object_size[2], pose.position.y - turntable_pos[1])
+        elif face == 'bottom':
+            angle_y = math.atan2(pose.position.z - turntable_pos[2], pose.position.y - turntable_pos[1])
+        else: # center
+            angle_y = math.atan2(pose.position.z - turntable_pos[2] - object_size[2] / 2, pose.position.y - turntable_pos[1])
+
+        angle_z = math.atan2(turntable_pos[1] - pose.position.y, turntable_pos[0] - pose.position.x)
+        quaternion = tf.transformations.quaternion_from_euler(0, angle_y, angle_z)
         pose.orientation.x = quaternion[0]
         pose.orientation.y = quaternion[1]
         pose.orientation.z = quaternion[2]
         pose.orientation.w = quaternion[3]
 
     move_group.set_pose_target(pose)
-    move_group.go(wait=True)
+    result = move_group.go(wait=True)
     move_group.stop()
     move_group.clear_pose_targets()
+    return result
 
 def set_turntable_angle(angle, radians=False):
     msg = scanning_tableGoal()
@@ -141,10 +150,11 @@ def create_arm_positions(n=15):
     min_z = turntable_pos[2]
     max_z = turntable_pos[2] + object_size[2] + camera_size[1] + distance
 
+    div = object_size[1] / 2 + object_size[2]
     positions = []
-    for y in numpy.linspace(min_y, max_y, n * object_size[1] / object_size[2]):
+    for y in numpy.linspace(min_y, max_y, n / div * object_size[1] / 2):
         positions.append([0.0, y, max_z])
-    for z in numpy.linspace(max_z, min_z, n * object_size[2] / object_size[1]):
+    for z in numpy.linspace(max_z, min_z, n / div * object_size[2])[1:]:
         positions.append([0.0, max_y, z])
 
     return positions
@@ -154,5 +164,7 @@ if __name__ == '__main__':
 
     positions = create_arm_positions()
     for position in positions:
+        move_to(position, face='top')
         move_to(position)
+        move_to(position, face='bottom')
 

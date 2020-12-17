@@ -73,15 +73,15 @@ $ rosrun iai_mab_control acquisition.py
 The following optional parameters can be set by adding them to the _rosrun_ command.
 
 | Parameter              | Description                                                                                                                                        | Example                           |
-|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------|
-| camera_size            | Width, length and height of the attached camera.                                                                                                   | _camera_size:='[0.1, 0.1, 0.1]'   |
-| distance_camera_object | The distance between the camera and the object at all positions.                                                                                   | _distance_camera_object:=0.2      |
-| num_positions          | Number of positions around the object that the robot should move to.                                                                               | _num_positions:=15                |
-| num_spins              | Number of spins the turntable should do for each position of the robot.                                                                            | _num_spins:=8                     |
-| object_size            | Width, length and height of the object on the turntable.                                                                                           | _object_size:='[0.2, 0.2, 0.2]'   |
-| photobox_pos           | Center position of the photobox ground plane.                                                                                                      | _photobox_pos:='[0.0, -0.7, 0.0]' |
-| photobox_size          | Width, length and height of the photobox.                                                                                                          | _photobox_size:='[1.0, 1.0, 1.0]' |
-| simulation             | Defines whether the script is run in simulation or not. If True the robot arm will move faster and not wait for the turntable to become available. | _simulation:=True                 |
+|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------|
+| _camera_size            | Width, length and height of the attached camera.                                                                                                   | _camera_size:='[0.1, 0.1, 0.1]'   |
+| _distance_camera_object | The distance between the camera and the object at all positions.                                                                                   | _distance_camera_object:=0.2      |
+| _num_positions          | Number of positions around the object that the robot should move to.                                                                               | _num_positions:=15                |
+| _num_spins              | Number of spins the turntable should do for each position of the robot.                                                                            | _num_spins:=8                     |
+| _object_size            | Width, length and height of the object on the turntable.                                                                                           | _object_size:='[0.2, 0.2, 0.2]'   |
+| _photobox_pos           | Center position of the photobox ground plane.                                                                                                      | _photobox_pos:='[0.0, -0.7, 0.0]' |
+| _photobox_size          | Width, length and height of the photobox.                                                                                                          | _photobox_size:='[1.0, 1.0, 1.0]' |
+| _simulation             | Defines whether the script is run in simulation or not. If True the robot arm will move faster and not wait for the turntable to become available. | _simulation:=True                 |
 
 The easiest way to work with the bot during development is to use the provided launch files.
 

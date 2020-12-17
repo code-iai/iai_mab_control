@@ -16,7 +16,7 @@ def init(output_directory, retry = True):
     if os.path.exists(output_directory):
         if not os.path.isdir(output_directory):
             _print('Given output directory is no directory', 'Error')
-            return
+            return False
 
         if len(os.listdir(output_directory)) != 0:
             _print('Output directory is not empty, files might get overridden', 'Warning')
@@ -25,7 +25,7 @@ def init(output_directory, retry = True):
             os.mkdir(output_directory)
         except:
             _print('Failed to create output directory', 'Error')
-            return
+            return False
 
     _output_directory = output_directory
     camera = gp.Camera()
@@ -36,14 +36,14 @@ def init(output_directory, retry = True):
         try:
             camera.init()
             _camera = camera
-            break
+            return True
         except gp.GPhoto2Error as err:
             _print(err, 'Error')
 
             if wait:
                 time.sleep(2)
             else:
-                break
+                return False
 
 def capture():
     file_name = None

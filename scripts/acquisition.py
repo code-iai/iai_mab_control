@@ -6,6 +6,7 @@ from iai_scanning_table_msgs.msg import scanning_tableAction, scanning_tableGoal
 from moveit_commander import MoveGroupCommander, PlanningSceneInterface, RobotCommander
 from tf2_msgs.msg import TFMessage
 
+import camera
 import math
 import numpy
 import rospy
@@ -38,12 +39,14 @@ def init():
     scene = PlanningSceneInterface(synchronous=True)
 
     turntable_client = SimpleActionClient('scanning_table_action_server', scanning_tableAction)
-    if not simulation and not turntable_client.wait_for_server(rospy.Duration(10)):
-        sys.exit('Could not connect to turntable.')
 
     if simulation:
         move_home()
         rospy.Subscriber('tf', TFMessage, send_turntable_tf, tf.TransformBroadcaster())
+    elif not turntable_client.wait_for_server(rospy.Duration(10)):
+        sys.exit('Could not connect to turntable.')
+    elif not camera.init(rospy.get_param('~output_directory', 'out'), not simulation):
+        sys.exit('Could not initialize camera.')
 
     # add ground plane
     ps = PoseStamped()
@@ -170,7 +173,10 @@ if __name__ == '__main__':
             if move_to(position, face=face):
                 for i in range(num_spins):
                     set_turntable_angle(360 * i / num_positions)
-                    # TODO: take photo
-        rospy.sleep(1)
-    move_home()
 
+                    if not simulation:
+                        if camera.capture() is None:
+                            pass # TODO: handle capture failure
+        rospy.sleep(1)
+    camera.exit()
+    move_home()

@@ -72,7 +72,7 @@ $ rosrun iai_mab_control acquisition.py
 
 The following optional parameters can be set by adding them to the _rosrun_ command.
 
-| Parameter              | Description                                                                                                                                        | Example                           |
+| Parameter               | Description                                                                                                                                        | Example                           |
 |-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------|
 | _camera_size            | Width, length and height of the attached camera.                                                                                                   | _camera_size:='[0.1, 0.1, 0.1]'   |
 | _distance_camera_object | The distance between the camera and the object at all positions.                                                                                   | _distance_camera_object:=0.2      |
@@ -82,6 +82,7 @@ The following optional parameters can be set by adding them to the _rosrun_ comm
 | _photobox_pos           | Center position of the photobox ground plane.                                                                                                      | _photobox_pos:='[0.0, -0.7, 0.0]' |
 | _photobox_size          | Width, length and height of the photobox.                                                                                                          | _photobox_size:='[1.0, 1.0, 1.0]' |
 | _simulation             | Defines whether the script is run in simulation or not. If True the robot arm will move faster and not wait for the turntable to become available. | _simulation:=True                 |
+| _output_directory       | The directory to store captured photos into.                                                                                                       | _output_directory:='out'          |
 
 The easiest way to work with the bot during development is to use the provided launch files.
 

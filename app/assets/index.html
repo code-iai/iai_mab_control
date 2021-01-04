@@ -1,0 +1,74 @@
+<h3>EXAMPLE</h3>
+<button onClick='example()'>Click me</button>
+<div id="response-container">Hello World</div>
+<script>
+    var counter = 0;
+
+    function example() {
+        pywebview.api.example(++counter).then(showResponse);
+    }
+
+    function showResponse(response) {
+        var container = document.getElementById('response-container');
+        container.innerText = response;
+    }
+</script>
+
+<hr>
+<button onClick='setCameraSize()'>Set camera size</button><br>
+<button onClick='setDistanceCameraObject()'>Set distance between camera and object</button><br>
+<button onClick='setNumPositions()'>Set number of camera positions</button><br>
+<button onClick='setNumSpins()'>Set number of turntable spins</button><br>
+<button onClick='setObjectSize()'>Set object size</button><br>
+<button onClick='setPhotoboxPos()'>Set photobox position</button><br>
+<button onClick='setPhotoboxSize()'>Set photobox size</button><br>
+<button onClick='setSimulation()'>Set simulation</button><br>
+<button onClick='setOutputDir()'>Set output directory</button>
+
+<script>
+    function setCameraSize() {
+        value = '[0.1, 0.1, 0.1]'; // todo: get from input
+        pywebview.api.update_settings(['_camera_size', value])
+    }
+
+    function setDistanceCameraObject() {
+        value = '0.2'; // todo: get from input
+        pywebview.api.update_settings(['_distance_camera_object', value])
+    }
+
+    function setNumPositions() {
+        value = '15'; // todo: get from input
+        pywebview.api.update_settings(['_num_positions', value])
+    }
+
+    function setNumSpins() {
+        value = '8'; // todo: get from input
+        pywebview.api.update_settings(['_num_spins', value])
+    }
+
+    function setObjectSize() {
+        value = '[0.2, 0.2, 0.2]'; // todo: get from input
+        pywebview.api.update_settings(['_object_size', value])
+    }
+
+    function setPhotoboxPos() {
+        value = '[0.0, -0.7, 0.0]'; // todo: get from input
+        pywebview.api.update_settings(['_photobox_pos', value])
+    }
+
+    function setPhotoboxSize() {
+        value = '[1.0, 1.0, 1.0]'; // todo: get from input
+        pywebview.api.update_settings(['_photobox_size', value])
+    }
+
+    function toggleSimulation() {
+        value = 'True'; // todo: get from input
+        pywebview.api.update_settings(['_simulation', value])
+    }
+
+    function setOutputDir() {
+        value = 'out'; // todo: get from input
+        pywebview.api.update_settings(['_output_directory', value])
+    }
+</script>
+

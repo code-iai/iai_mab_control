@@ -1,0 +1,12 @@
+{
+    "_camera_size": "[0.1, 0.1, 0.1]",
+    "_num_positions": "15",
+    "_object_size": "[0.2, 0.2, 0.2]",
+    "_distance_camera_object": "0.2",
+    "_photobox_pos": "[0.0, -0.7, 0.0]",
+    "_simulation": "True",
+    "_num_spins": "8",
+    "_photobox_size": "[1.0, 1.0, 1.0]",
+    "_output_directory": "out"
+}
+

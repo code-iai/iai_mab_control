@@ -1,5 +1,0 @@
-# add instructions for install pywebview to README.md:
-pip install pywebview==2.*
-
-# add instructions for  run application to README.md
-./start.py

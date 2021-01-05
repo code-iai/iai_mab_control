@@ -43,12 +43,6 @@ For the bot to take photos using the Nikon Z6 II camera which is mounted on the 
 
 We recommend the installation using _pip_. Note that the dependency **libgphoto2-devel** is already included in the Desktop-Full Install of ROS Melodic and thus might not have to be installed manually.
 
-To run the application in a graphical user interface **pywebview** is required. We recommnend installing version 2.* as version 3.* does not support python 2. Most convenient way to install it is by using _pip_.
-
-```
-$ pip install pywebview==2.*
-```
-
 ## Installation
 
 Once all requirements are taken care of simply clone the repository inside _~/catkin_ws/src/_ and build the workspace.
@@ -70,14 +64,7 @@ Alternatively, start a new shell if you source it in _~/.bashrc_.
 
 ## Usage
 
-The easiest way to start the bot is by using the graphical user interface application.
-
-```
-$ roscd iai_mab_control
-$ app/start.py
-```
-
-Alternatively the bot can be started using _rosrun_.
+The bot can be started using _rosrun_.
 
 ```
 $ rosrun iai_mab_control acquisition.py

@@ -46,11 +46,64 @@ class HTTPHandler(SimpleHTTPRequestHandler):
             path = self.path[5:]
 
             if path == 'loadSettings':
-                with open('settings.json') as f:
-                    self._send_ok(f.read(), 'JSON')
+                response = {}
+
+                with open(app_dir + '/settings/environment.json') as f:
+                    response['environment'] = { 'settings': json.loads(f.read()), 'path': os.path.abspath(f.name) }
+
+                with open(app_dir + '/settings/model.json') as f:
+                    response['model'] = json.loads(f.read())
+
+                with open(app_dir + '/settings/photogrammetry.json') as f:
+                    response['photogrammetry'] = json.loads(f.read())
+
+                self._send_ok(json.dumps(response), 'JSON')
+            elif path == 'deleteSettings':
+                if 'type' in request and (request['type'] == 'model' or request['type'] == 'photogrammetry') and 'name' in request:
+                    with open(app_dir + '/settings/' + request['type'] + '.json') as f:
+                        settings = json.loads(f.read())
+
+                    settings.pop(request['name'], None)
+
+                    with open(app_dir + '/settings/' + request['type'] + '.json', 'w') as f:
+                        f.write(json.dumps(settings))
+
+                    self._send_ok()
+                else:
+                    self._send_error('BAD_REQUEST')
             elif path == 'saveSettings':
-                # TODO save settings (stored in request)
-                self._send_ok()
+                if 'type' in request and 'name' in request and 'settings' in request:
+                    if request['type'] == 'model' and 'camera_distance' in request['settings'] and 'num_positions' in request['settings'] and 'num_spins' in request['settings']:
+                        with open(app_dir + '/settings/model.json') as f:
+                            settings = json.loads(f.read())
+
+                        settings[request['name']] = {
+                            'camera_distance': request['settings']['camera_distance']
+                        ,   'num_positions': request['settings']['num_positions']
+                        ,   'num_spins': request['settings']['num_spins']
+                        }
+
+                        with open(app_dir + '/settings/model.json', 'w') as f:
+                            f.write(json.dumps(settings))
+
+                        self._send_ok()
+                    elif request['type'] == 'photogrammetry' and 'max_num_triangles' in request['settings'] and 'max_num_vertices' in request['settings']:
+                        with open(app_dir + '/settings/photogrammetry.json') as f:
+                            settings = json.loads(f.read())
+
+                        settings[request['name']] = {
+                            'max_num_triangles': request['settings']['max_num_triangles']
+                        ,   'max_num_vertices': request['settings']['max_num_vertices']
+                        }
+
+                        with open(app_dir + '/settings/photogrammetry.json', 'w') as f:
+                            f.write(json.dumps(settings))
+
+                        self._send_ok()
+                    else:
+                        self._send_error('BAD_REQUEST')
+                else:
+                    self._send_error('BAD_REQUEST')
             else:
                 self._send_error('NOT_FOUND')
         else:
@@ -61,6 +114,7 @@ class MyHTTPServer(HTTPServer):
         self.base_path = os.path.join(os.path.dirname(__file__), path)
         HTTPServer.__init__(self, ('', port), HTTPHandler)
 
+app_dir = os.path.dirname(os.path.abspath(__file__))
 httpd = MyHTTPServer()
 
 try:
@@ -69,3 +123,4 @@ except KeyboardInterrupt:
     pass
 
 httpd.server_close()
+

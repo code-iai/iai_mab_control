@@ -5,211 +5,198 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Model Acquisition Bot</title>
 		<link rel="icon" href="/favicon.ico">
-		<link rel="stylesheet" href="/css/bootstrap.min.css">
-		<link rel="stylesheet" href="/css/fontawesome.min.css">
-		<link rel="stylesheet" href="/css/solid.min.css">
-		<link rel="stylesheet" href="/css/brands.min.css">
-		<style>
-		.fa-github:hover {
-			color: #333333;
-		}
-		</style>
+		<link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/assets/css/all.min.css">
+		<link rel="stylesheet" href="/assets/css/style.css">
 	</head>
 	<body>
-		<div class="min-vh-100">
-			<nav class="navbar navbar-expand navbar-light border-bottom bg-light sticky-top">
+		<div class="min-vh-100 container py-3 text-center" id="loading">
+			<i class="fas fa-spinner fa-10x fa-spin"></i>
+		</div>
+		<div class="min-vh-100 d-none" id="loaded">
+			<nav class="navbar sticky-top navbar-expand navbar-light bg-light">
 				<div class="container-fluid">
 					<ul class="navbar-nav">
 						<li class="nav-item">
-							<a class="nav-link text-primary" href="#" data-page="home"><i class="fas fa-home me-2"></i>Home</a>
+							<a class="nav-link text-primary" href="#" data-page="home"><i class="fas fa-home fa-fw me-2"></i>Home</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#" data-page="settings"><i class="fas fa-cog me-2"></i>Settings</a>
+							<a class="nav-link" href="#" data-page="settings"><i class="fas fa-cog fa-fw me-2"></i>Settings</a>
 						</li>
 					</ul>
 				</div>
 			</nav>
-			<div class="container py-3">
-				<div id="pages">
-					<div id="home">
-						<textarea class="form-control bg-dark text-light mb-3" rows="10">> ...
+			<main class="container py-3" id="pages">
+				<div id="home">
+					<textarea class="form-control bg-dark text-light mb-3" rows="10">> ...
 > ...
 > ...</textarea>
-						<div class="progress mb-3" style="height: 40px;">
-							<div class="progress-bar progress-bar-striped progress-bar-animated px-2 lead" style="min-width: 20%;">20%</div>
-						</div>
-						<p>Step 1 / 10: ...</p>
-						<button class="btn btn-danger">Cancel</button>
-						<hr>
-						<div class="form-floating mb-3">
-							<input type="text" class="form-control" id="workingDirectory" placeholder="Working directory" value="~/">
-							<label for="workingDirectory">Working directory</label>
-						</div>
-						<ul class="nav nav-tabs mb-3">
-							<li class="nav-item">
-								<a class="nav-link active" href="#homeModelAcquisition" data-bs-toggle="tab">Model acquisition</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#homePhotogrammetry" data-bs-toggle="tab">Photogrammetry</a>
-							</li>
-						</ul>
-						<div class="tab-content">
-							<div class="tab-pane fade show active" id="homeModelAcquisition">
-								<div class="form-floating mb-3">
-									<input type="text" class="form-control" id="objectWidth" placeholder="Object width">
-									<label for="objectWidth">Object width</label>
-								</div>
-								<div class="form-floating mb-3">
-									<input type="text" class="form-control" id="objectLength" placeholder="Object length">
-									<label for="objectLength">Object length</label>
-								</div>
-								<div class="form-floating mb-3">
-									<input type="text" class="form-control" id="objectHeight" placeholder="Object height">
-									<label for="objectHeight">Object height</label>
-								</div>
-								<div class="form-check mb-3">
-									<input type="checkbox" class="form-check-input" id="simulation" value="">
-									<label class="form-check-label" for="simulation">Simulation</label>
-								</div>
-								<button class="btn btn-secondary me-3">Test</button><button class="btn btn-primary">Start</button>
+					<div class="progress mb-3" style="height: 40px;">
+						<div class="progress-bar progress-bar-striped progress-bar-animated px-2 lead" style="min-width: 20%;">20%</div>
+					</div>
+					<p>Step 1 / 10: ...</p>
+					<button class="btn btn-danger">Cancel</button>
+					<hr>
+					<div class="form-floating mb-3">
+						<input type="text" class="form-control" id="workingDirectory" placeholder="Working directory" value="~/">
+						<label for="workingDirectory">Working directory</label>
+					</div>
+					<ul class="nav nav-tabs mb-3">
+						<li class="nav-item">
+							<a class="nav-link active" href="#homeModel" data-bs-toggle="tab">Model acquisition</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="#homePhotogrammetry" data-bs-toggle="tab">Photogrammetry</a>
+						</li>
+					</ul>
+					<div class="tab-content">
+						<div class="tab-pane fade show active" id="homeModel">
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="objectWidth" placeholder="Object width">
+								<label for="objectWidth">Object width</label>
 							</div>
-							<div class="tab-pane fade" id="homePhotogrammetry">
-								<div class="form-floating mb-3">
-									<input type="text" class="form-control" id="fileName" placeholder="File name" value="model">
-									<label for="fileName">File name</label>
-								</div>
-								<div class="mb-3">
-									<span class="me-3">Formats:</span><div class="form-check form-check-inline">
-										<input type="checkbox" class="form-check-input" id="formatFBX" checked>
-										<label class="form-check-label" for="formatFBX">FBX</label>
-									</div><div class="form-check form-check-inline">
-										<input type="checkbox" class="form-check-input" id="formatSTL" checked>
-										<label class="form-check-label" for="formatSTL">STL</label>
-									</div><div class="form-check form-check-inline">
-										<input type="checkbox" class="form-check-input" id="formatDAE" checked>
-										<label class="form-check-label" for="formatDAE">DAE</label>
-									</div>
-								</div>
-								<button class="btn btn-primary">Start</button>
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="objectLength" placeholder="Object length">
+								<label for="objectLength">Object length</label>
 							</div>
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="objectHeight" placeholder="Object height">
+								<label for="objectHeight">Object height</label>
+							</div>
+							<div class="form-check mb-3">
+								<input type="checkbox" class="form-check-input" id="simulation" value="">
+								<label class="form-check-label" for="simulation">Simulation</label>
+							</div>
+							<button class="btn btn-secondary me-3">Test</button><button class="btn btn-primary">Start</button>
+						</div>
+						<div class="tab-pane fade" id="homePhotogrammetry">
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="fileName" placeholder="File name" value="model">
+								<label for="fileName">File name</label>
+							</div>
+							<div class="mb-3">
+								<span class="me-3">Formats:</span><div class="form-check form-check-inline">
+									<input type="checkbox" class="form-check-input" id="formatFBX" checked>
+									<label class="form-check-label" for="formatFBX">FBX</label>
+								</div><div class="form-check form-check-inline">
+									<input type="checkbox" class="form-check-input" id="formatSTL" checked>
+									<label class="form-check-label" for="formatSTL">STL</label>
+								</div><div class="form-check form-check-inline">
+									<input type="checkbox" class="form-check-input" id="formatDAE" checked>
+									<label class="form-check-label" for="formatDAE">DAE</label>
+								</div>
+							</div>
+							<button class="btn btn-primary">Start</button>
 						</div>
 					</div>
-					<div class="d-none" id="settings">
-						<ul class="nav nav-tabs mb-3">
-							<li class="nav-item">
-								<a class="nav-link active" href="#settingsEnvironment" data-bs-toggle="tab">Environment</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#settingsModelAcquisition" data-bs-toggle="tab">Model acquisition</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link" href="#settingsPhotogrammetry" data-bs-toggle="tab">Photogrammetry</a>
-							</li>
-						</ul>
-						<div class="tab-content">
-							<div class="tab-pane fade show active" id="settingsEnvironment">
-								<div class="form-floating mb-3">
-									<input type="text" class="form-control" id="cameraSize" placeholder="Camera size" value="[0.1, 0.1, 0.1]" readonly>
-									<label for="cameraSize">Camera size</label>
-								</div>
-								<div class="form-floating mb-3">
-									<input type="text" class="form-control" id="photoboxPosition" placeholder="Photobox position" value="[0.0, -0.7, 0.0]" readonly>
-									<label for="photoboxPosition">Photobox position</label>
-								</div>
-								<div class="form-floating mb-3">
-									<input type="text" class="form-control" id="photoboxSize" placeholder="Photobox size" value="[1.0, 1.0, 1.0]" readonly>
-									<label for="photoboxSize">Photobox size</label>
-								</div>
-								For security reasons these settings can only be adjusted in <i>~/path/settings.json</i>.
+				</div>
+				<div class="d-none" id="settings">
+					<ul class="nav nav-tabs mb-3">
+						<li class="nav-item">
+							<a class="nav-link active" href="#settingsEnvironment" data-bs-toggle="tab">Environment</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="#settingsModel" data-bs-toggle="tab">Model acquisition</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="#settingsPhotogrammetry" data-bs-toggle="tab">Photogrammetry</a>
+						</li>
+					</ul>
+					<div class="tab-content">
+						<div class="tab-pane fade show active" id="settingsEnvironment">
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="cameraSize" placeholder="Camera size" readonly>
+								<label for="cameraSize">Camera size</label>
 							</div>
-							<div class="tab-pane fade" id="settingsModelAcquisition">
-								<div class="form-floating mb-3">
-									<input type="text" class="form-control" id="cameraDistance" placeholder="Camera distance to object" value="0.2">
-									<label for="cameraDistance">Camera distance to object</label>
-								</div>
-								<div class="form-floating mb-3">
-									<input type="number" class="form-control" id="numPositions" placeholder="Number of positions" value="15">
-									<label for="numPositions">Number of positions</label>
-								</div>
-								<div class="form-floating">
-									<input type="number" class="form-control" id="numSpins" placeholder="Number of spins" value="8">
-									<label for="numSpins">Number of spins</label>
-								</div>
-								<hr>
-								<div class="row g-3 mb-3">
-									<div class="col">
-										<div class="form-floating">
-											<select class="form-select" id="savedSettingsModelAcquisition">
-												<option></option>
-												<option>Less details</option>
-												<option>More details</option>
-											</select>
-											<label for="savedSettingsModelAcquisition">Saved settings</label>
-										</div>
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="photoboxPosition" placeholder="Photobox position"readonly>
+								<label for="photoboxPosition">Photobox position</label>
+							</div>
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="photoboxSize" placeholder="Photobox size" readonly>
+								<label for="photoboxSize">Photobox size</label>
+							</div>
+							For security reasons these settings can only be adjusted in <i id="environmentPath"></i>.
+						</div>
+						<div class="tab-pane fade" id="settingsModel">
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="cameraDistance" placeholder="Camera distance to object">
+								<label for="cameraDistance">Camera distance to object</label>
+							</div>
+							<div class="form-floating mb-3">
+								<input type="number" class="form-control" id="numPositions" placeholder="Number of positions">
+								<label for="numPositions">Number of positions</label>
+							</div>
+							<div class="form-floating">
+								<input type="number" class="form-control" id="numSpins" placeholder="Number of spins">
+								<label for="numSpins">Number of spins</label>
+							</div>
+							<hr>
+							<div class="row g-3 mb-3">
+								<div class="col">
+									<div class="form-floating">
+										<select class="form-select" id="savedSettingsModel"></select>
+										<label for="savedSettingsModel">Saved settings</label>
 									</div>
-									<div class="col-auto">
-										<button type="button" class="btn btn-primary h-100 me-3">Load</button><button type="button" class="btn btn-danger h-100">Delete</button>
-									</div>
 								</div>
-								<div class="row g-3">
-									<div class="col">
-										<div class="form-floating">
-											<input type="text" class="form-control" id="nameModalAcquisition" placeholder="Name">
-											<label for="nameModalAcquisition">Name</label>
-										</div>
-									</div>
-									<div class="col-auto">
-										<button type="button" class="btn btn-primary h-100">Save</button>
-									</div>
+								<div class="col-auto">
+									<button type="button" class="btn btn-primary h-100 me-3" id="loadModel">Load</button><button type="button" class="btn btn-danger h-100" id="deleteModel">Delete</button>
 								</div>
 							</div>
-							<div class="tab-pane fade" id="settingsPhotogrammetry">
-								<div class="form-floating mb-3">
-									<input type="number" class="form-control" id="maxNumTriangles" placeholder="Maximum number of triangles">
-									<label for="maxNumTriangles">Maximum number of triangles</label>
-								</div>
-								<div class="form-floating">
-									<input type="number" class="form-control" id="maxNumVertices" placeholder="Maximum number of vertices">
-									<label for="maxNumVertices">Maximum number of vertices</label>
-								</div>
-								<hr>
-								<div class="row g-3 mb-3">
-									<div class="col">
-										<div class="form-floating">
-											<select class="form-select" id="savedSettingsPhotogrammetry">
-												<option></option>
-												<option>Low quality</option>
-												<option>High quality</option>
-											</select>
-											<label for="savedSettingsPhotogrammetry">Saved settings</label>
-										</div>
-									</div>
-									<div class="col-auto">
-										<button type="button" class="btn btn-primary h-100 me-3">Load</button><button type="button" class="btn btn-danger h-100">Delete</button>
+							<div class="row g-3">
+								<div class="col">
+									<div class="form-floating">
+										<input type="text" class="form-control" id="nameModel" placeholder="Name">
+										<label for="nameModel">Name</label>
 									</div>
 								</div>
-								<div class="row g-3">
-									<div class="col">
-										<div class="form-floating">
-											<input type="text" class="form-control" id="namePhotogrammetry" placeholder="Name">
-											<label for="namePhotogrammetry">Name</label>
-										</div>
+								<div class="col-auto">
+									<button type="button" class="btn btn-primary h-100" id="saveModel">Save</button>
+								</div>
+							</div>
+						</div>
+						<div class="tab-pane fade" id="settingsPhotogrammetry">
+							<div class="form-floating mb-3">
+								<input type="number" class="form-control" id="maxNumTriangles" placeholder="Maximum number of triangles">
+								<label for="maxNumTriangles">Maximum number of triangles</label>
+							</div>
+							<div class="form-floating">
+								<input type="number" class="form-control" id="maxNumVertices" placeholder="Maximum number of vertices">
+								<label for="maxNumVertices">Maximum number of vertices</label>
+							</div>
+							<hr>
+							<div class="row g-3 mb-3">
+								<div class="col">
+									<div class="form-floating">
+										<select class="form-select" id="savedSettingsPhotogrammetry"></select>
+										<label for="savedSettingsPhotogrammetry">Saved settings</label>
 									</div>
-									<div class="col-auto">
-										<button type="button" class="btn btn-primary h-100">Save</button>
+								</div>
+								<div class="col-auto">
+									<button type="button" class="btn btn-primary h-100 me-3" id="loadPhotogrammetry">Load</button><button type="button" class="btn btn-danger h-100" id="deletePhotogrammetry">Delete</button>
+								</div>
+							</div>
+							<div class="row g-3">
+								<div class="col">
+									<div class="form-floating">
+										<input type="text" class="form-control" id="namePhotogrammetry" placeholder="Name">
+										<label for="namePhotogrammetry">Name</label>
 									</div>
+								</div>
+								<div class="col-auto">
+									<button type="button" class="btn btn-primary h-100" id="savePhotogrammetry">Save</button>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+			</main>
 		</div>
-		<div class="container-fluid border-top bg-light py-3">
-			<a class="text-muted" target="_blank" href="https://github.com/code-iai/iai_mab_control"><i class="fab fa-github fa-2x"></i></a>
+		<footer class="footer container-fluid bg-light py-3">
+			<a target="_blank" href="https://github.com/code-iai/iai_mab_control"><i class="fab fa-github fa-2x fa-fw"></i></a>
 		</div>
-		<script src="/js/bootstrap.bundle.min.js"></script>
-		<script src="/js/attribution.js"></script>
+		<script src="/assets/js/bootstrap.bundle.min.js"></script>
+		<script src="/assets/js/ajax.js"></script>
 		<script>
 		const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
 		const pages = document.querySelectorAll('#pages > div');
@@ -234,6 +221,149 @@
 					}
 				});
 			});
+		});
+
+		const settings = {};
+
+		function updateSettings(type) {
+			const select = document.querySelector('#savedSettings' + (type == 'model' ? 'Model' : 'Photogrammetry'));
+			select.innerHTML = '<option></option>';
+
+			Object.keys(settings[type]).forEach(function(name) {
+				const option = document.createElement('option');
+				option.innerText = name;
+				select.appendChild(option);
+			});
+		}
+
+		function loadSettings() {
+			post_json('/api/loadSettings', null, function(response) {
+				response = JSON.parse(response);
+
+				document.querySelector('#cameraSize').value = response.environment.settings.camera_size;
+				document.querySelector('#photoboxPosition').value = response.environment.settings.photobox_position;
+				document.querySelector('#photoboxSize').value = response.environment.settings.photobox_size;
+				document.querySelector('#environmentPath').innerText = response.environment.path;
+
+				settings.model = response.model;
+				updateSettings('model');
+
+				settings.photogrammetry = response.photogrammetry;
+				updateSettings('photogrammetry');
+
+				document.querySelector('#loading').classList.add('d-none');
+				document.querySelector('#loaded').classList.remove('d-none');
+			}, function() {
+				setTimeout(loadSettings, 1000);
+			});
+		}
+
+		loadSettings();
+
+		document.querySelector('#loadModel').addEventListener('click', function() {
+			const name = document.querySelector('#savedSettingsModel').value;
+
+			if (name) {
+				const settingsModel = settings.model[name];
+				document.querySelector('#cameraDistance').value = settingsModel.camera_distance;
+				document.querySelector('#numPositions').value = settingsModel.num_positions;
+				document.querySelector('#numSpins').value = settingsModel.num_spins;
+				document.querySelector('#nameModel').value = name;
+			}
+		});
+
+		document.querySelector('#deleteModel').addEventListener('click', function() {
+			const name = document.querySelector('#savedSettingsModel').value;
+
+			if (name) {
+				const btn = this;
+				btn.disabled = true;
+
+				post_json('/api/deleteSettings', { type: 'model', name: name }, function() {
+					delete settings.model[name];
+					updateSettings('model');
+				}, function() {
+					alert('Failed. Please try again.');
+				}, function() {
+					btn.disabled = false;
+				});
+			}
+		});
+
+		document.querySelector('#saveModel').addEventListener('click', function() {
+			const name = document.querySelector('#nameModel').value;
+
+			if (name) {
+				settingsModel = {
+					'camera_distance': document.querySelector('#cameraDistance').value
+				,	'num_positions': document.querySelector('#numPositions').value
+				,	'num_spins': document.querySelector('#numSpins').value
+				};
+
+				const btn = this;
+				btn.disabled = true;
+
+				post_json('/api/saveSettings', { type: 'model', name: name, settings: settingsModel }, function() {
+					settings.model[name] = settingsModel;
+					updateSettings('model');
+				}, function() {
+					alert('Failed. Please try again.');
+				}, function() {
+					btn.disabled = false;
+				});
+			}
+		});
+
+		document.querySelector('#loadPhotogrammetry').addEventListener('click', function() {
+			const name = document.querySelector('#savedSettingsPhotogrammetry').value;
+
+			if (name) {
+				const settingsPhotogrammetry = settings.photogrammetry[name];
+				document.querySelector('#maxNumTriangles').value = settingsPhotogrammetry.max_num_triangles;
+				document.querySelector('#maxNumVertices').value = settingsPhotogrammetry.max_num_vertices;
+				document.querySelector('#namePhotogrammetry').value = name;
+			}
+		});
+
+		document.querySelector('#deletePhotogrammetry').addEventListener('click', function() {
+			const name = document.querySelector('#savedSettingsPhotogrammetry').value;
+
+			if (name) {
+				const btn = this;
+				btn.disabled = true;
+
+				post_json('/api/deleteSettings', { type: 'photogrammetry', name: name }, function() {
+					delete settings.photogrammetry[name];
+					updateSettings('photogrammetry');
+				}, function() {
+					alert('Failed. Please try again.');
+				}, function() {
+					btn.disabled = false;
+				});
+			}
+		});
+
+		document.querySelector('#savePhotogrammetry').addEventListener('click', function() {
+			const name = document.querySelector('#namePhotogrammetry').value;
+
+			if (name) {
+				settingsPhotogrammetry = {
+					'max_num_triangles': document.querySelector('#maxNumTriangles').value
+				,	'max_num_vertices': document.querySelector('#maxNumVertices').value
+				};
+
+				const btn = this;
+				btn.disabled = true;
+
+				post_json('/api/saveSettings', { type: 'photogrammetry', name: name, settings: settingsPhotogrammetry }, function() {
+					settings.photogrammetry[name] = settingsPhotogrammetry;
+					updateSettings('photogrammetry');
+				}, function() {
+					alert('Failed. Please try again.');
+				}, function() {
+					btn.disabled = false;
+				});
+			}
 		});
 		</script>
 	</body>

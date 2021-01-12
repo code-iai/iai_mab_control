@@ -177,6 +177,7 @@ if __name__ == '__main__':
                     if not simulation:
                         if camera.capture() is None:
                             pass # TODO: handle capture failure
+        print('progress: ' + int(float(positions.index(position) + 1) / len(a) * 100))
         rospy.sleep(1)
     camera.exit()
     move_home()

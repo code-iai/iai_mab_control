@@ -5,19 +5,24 @@ from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 import json
 import os
+import subprocess
+import threading
 
 class HTTPHandler(SimpleHTTPRequestHandler):
+    process_model = None
+    process_photogrammetry = None
+
     def translate_path(self, path):
         path = SimpleHTTPRequestHandler.translate_path(self, path)
         relpath = os.path.relpath(path, os.getcwd())
         fullpath = os.path.join(self.server.base_path, relpath)
         return fullpath
 
-    def _send_error(self, code, message=None, explain=None):
+    def _send_error(self, code):
         self.send_error({
             'BAD_REQUEST': 400
         ,   'NOT_FOUND': 404
-        }.get(code, code), message, explain)
+        }.get(code, code))
 
     def _send_ok(self, body='', type='text/html'):
         self.send_response(200)
@@ -29,6 +34,22 @@ class HTTPHandler(SimpleHTTPRequestHandler):
 
         self.end_headers()
         self.wfile.write(body.encode('utf8'))
+
+    def _update_process(self, process):
+        while process.poll() is None:
+            stdout = process.stdout.readline()
+            if stdout.startswith('progress:'):
+                progress = stdout.rstrip().split()[1]
+                if process == self.process_model:
+                    print(process + '%') # TODO: send progress to model acquisition progress websocket
+                elif process == self.process_photogrammetry:
+                    print(process + '%') # TODO: send progress to photogrammetry progress websocket
+            else:
+                if process == self.process_model:
+                    print(stdout) # TODO: send stdout to model acquisition log websocket
+                elif process == self.process_photogrammetry:
+                    print(stdout) # TODO: send stdout to photogrammetry log websocket
+        # TODO: inform client about process termination
 
     def do_POST(self):
         if self.path.startswith('/api/'):
@@ -45,7 +66,33 @@ class HTTPHandler(SimpleHTTPRequestHandler):
 
             path = self.path[5:]
 
-            if path == 'loadSettings':
+            if path == 'start':
+                if 'type' in request and request['type'] == 'model' and (self.process_model is None or self.process_model.poll() is not None):
+                    params = []
+                    for key in request:
+                        if key.startswith('_'):
+                            params.append('{}:={}'.format(key, request[key]))
+
+                    self.process_model = subprocess.Popen(['rosrun', 'iai_mab_control', 'acquisition.py'] + params, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    threading.Thread(target=self._update_process, args=[self.process_model]).start()
+                    self._send_ok()
+                elif 'type' in request and request['type'] == 'photogrammetry' and (process_photogrammetry is None or process_photogrammetry.poll() is not None):
+                    pass # TODO: start photogrammetry
+                    self._send_ok()
+                else:
+                    self._send_error('BAD_REQUEST')
+            elif path == 'cancel'
+                if 'type' in request and request['type'] == 'model' and process_model is not None and process_model.poll() is None:
+                    process_model.kill()
+                    self._send_ok()
+                elif 'type' in request and request['type'] == 'photogrammetry' and process_photogrammetry is not None and process_photogrammetry.poll() is None:
+                    process_photogrammetry.kill()
+                    self._send_ok()
+                else:
+                    self._send_error('BAD_REQUEST')
+            elif path == 'test':
+                pass # TODO: test config by moving arm only without taking photos or moving the turntable
+            elif path == 'loadSettings':
                 response = {}
 
                 with open(app_dir + '/settings/environment.json') as f:

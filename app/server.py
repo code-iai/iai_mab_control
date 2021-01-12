@@ -41,9 +41,9 @@ class HTTPHandler(SimpleHTTPRequestHandler):
             if stdout.startswith('progress:'):
                 progress = stdout.rstrip().split()[1]
                 if process == self.process_model:
-                    print(process + '%') # TODO: send progress to model acquisition progress websocket
+                    print(progress + '%') # TODO: send progress to model acquisition progress websocket
                 elif process == self.process_photogrammetry:
-                    print(process + '%') # TODO: send progress to photogrammetry progress websocket
+                    print(progress + '%') # TODO: send progress to photogrammetry progress websocket
             else:
                 if process == self.process_model:
                     print(stdout) # TODO: send stdout to model acquisition log websocket
@@ -81,7 +81,7 @@ class HTTPHandler(SimpleHTTPRequestHandler):
                     self._send_ok()
                 else:
                     self._send_error('BAD_REQUEST')
-            elif path == 'cancel'
+            elif path == 'cancel':
                 if 'type' in request and request['type'] == 'model' and process_model is not None and process_model.poll() is None:
                     process_model.kill()
                     self._send_ok()

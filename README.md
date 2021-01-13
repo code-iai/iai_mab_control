@@ -43,6 +43,12 @@ For the bot to take photos using the Nikon Z6 II camera which is mounted on the 
 
 We recommend the installation using _pip_. Note that the dependency **libgphoto2-devel** is already included in the Desktop-Full Install of ROS Melodic and thus might not have to be installed manually.
 
+And finally **Meshroom by AliceVision** needs to be downloaded as it is used by the application to create 3D models from the images. The most recent version can be downloaded from https://github.com/alicevision/meshroom/releases. We used version 2019.2.0. On Ubuntu the .tar.gz archive can be unpacked from the terminal using _tar_.
+
+```
+$ tar -xvzf Meshroom-2019.2.0-linux.tar.gz
+```
+
 ## Installation
 
 Once all requirements are taken care of simply clone the repository inside _~/catkin_ws/src/_ and build the workspace.
@@ -108,3 +114,14 @@ If the bot is used in simulation the additional parameters _simulation_ and _com
 ```
 $ roslaunch iai_mab_control keyboard_controller.launch simulation:=True command_topic:=arm_controller/command
 ```
+
+## Graphical user interface (GUI)
+
+To use the GUI the server of the application needs to be started first.
+
+```
+$ roscd iai_mab_control
+$ app/server.py
+```
+
+After starting the server any web browser can be used to access the GUI by browsing to [http://MACHINE_IP_ADDRESS:8000](http://MACHINE_IP_ADDRESS:8000) where _MACHINE_IP_ADDRESS_ is the ip address of the machine the server is running on. To access the GUI on the same machine as the server is running on, you can visit http://127.0.0.1:8000.

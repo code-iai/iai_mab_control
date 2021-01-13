@@ -7,12 +7,19 @@ import math
 bin_dir = sys.argv[1]
 model_dir = sys.argv[2]
 images_dir = sys.argv[3]
+num_images = len([name for name in os.listdir(images_dir) if os.path.isfile(os.path.join(images_dir, name))])
 verbose_level = 'error'
+
+def _mkdir(path):
+    try:
+        os.mkdir(path)
+    except:
+        pass
 
 def run_01_camera_init():
     print('01/13 CAMERA INITIALIZATION')
     task_dir = '01_camera_init'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     sensor_db = bin_dir + '/../share/aliceVision/cameraSensors.db'
 
@@ -27,10 +34,10 @@ def run_01_camera_init():
     print(cmd)
     os.system(cmd)
 
-def run_02_feature_extraction(num_images, num_images_per_group=40):
+def run_02_feature_extraction(num_images_per_group=40):
     print('02/13 FEATURE EXTRACTION')
     task_dir = '02_feature_extraction'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     _input = model_dir + '/01_camera_init/cameraInit.sfm'
     output = '{}/{}'.format(model_dir, task_dir)
@@ -55,7 +62,7 @@ def run_02_feature_extraction(num_images, num_images_per_group=40):
 def run_03_image_matching():
     print('03/13 IMAGE MATCHING')
     task_dir = '03_image_matching'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     _input = model_dir + '/01_camera_init/cameraInit.sfm'
     features = model_dir + '/02_feature_extraction'
@@ -69,10 +76,10 @@ def run_03_image_matching():
     print(cmd)
     os.system(cmd)
 
-def run_04_feature_matching(num_images, num_images_per_group=20):
+def run_04_feature_matching(num_images_per_group=20):
     print('04/13 FEATURE MATCHING')
     task_dir = '04_feature_matching'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     _input = model_dir + '/01_camera_init/cameraInit.sfm'
     features = model_dir + '/02_feature_extraction'
@@ -102,7 +109,7 @@ def run_04_feature_matching(num_images, num_images_per_group=20):
 def run_05_structure_from_motion():
     print('05/13 STRUCTURE FROM MOTION')
     task_dir = '05_structure_from_motion'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     _input = model_dir + '/01_camera_init/cameraInit.sfm'
     features = model_dir + '/02_feature_extraction'
@@ -121,7 +128,7 @@ def run_05_structure_from_motion():
 def run_06_prepare_dense_scene():
     print('06/13 PREPARE DENSE SCENE')
     task_dir = '06_prepare_dense_scene'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     _input = model_dir + '/05_structure_from_motion/sfm.abc'
     output = '{}/{}'.format(model_dir, task_dir)
@@ -133,10 +140,10 @@ def run_06_prepare_dense_scene():
     print(cmd)
     os.system(cmd)
 
-def run_07_depth_map(num_images, group_size=6, downscale=2):
+def run_07_depth_map(group_size=6, downscale=2):
     print('07/13 DEPTH MAP')
     task_dir = '07_depth_map'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     _input = model_dir + '/05_structure_from_motion/sfm.abc'
     images = model_dir + '/06_prepare_dense_scene'
@@ -161,7 +168,7 @@ def run_07_depth_map(num_images, group_size=6, downscale=2):
 def run_08_depth_map_filter():
     print('08/13 DEPTH MAP FILTER')
     task_dir = '08_depth_map_filter'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     _input = model_dir + '/05_structure_from_motion/sfm.abc'
     depth_maps = model_dir + '/07_depth_map'
@@ -177,7 +184,7 @@ def run_08_depth_map_filter():
 def run_09_meshing(max_input_points=50000000, max_points=1000000):
     print('09/13 MESHING')
     task_dir = '09_meshing'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     _input = model_dir + '/05_structure_from_motion/sfm.abc'
     depth_maps = model_dir + '/08_depth_map_filter'
@@ -196,7 +203,7 @@ def run_09_meshing(max_input_points=50000000, max_points=1000000):
 def run_10_mesh_filtering(keep_largest_mesh_only='True'):
     print('10/13 MESH FILTERING')
     task_dir = '10_mesh_filtering'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     input_mesh = model_dir + '/09_meshing/mesh.obj'
     output_mesh = '{}/{}/mesh.obj'.format(model_dir, task_dir)
@@ -211,7 +218,7 @@ def run_10_mesh_filtering(keep_largest_mesh_only='True'):
 def run_11_mesh_decimate(simplification_factor=0.8, max_vertices=15000):
     print('11/13 MESH DECIMATE')
     task_dir = '11_mesh_decimate'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     input_mesh = model_dir + '/10_mesh_filtering/mesh.obj'
     output_mesh = '{}/{}/mesh.obj'.format(model_dir, task_dir)
@@ -228,7 +235,7 @@ def run_11_mesh_decimate(simplification_factor=0.8, max_vertices=15000):
 def run_12_mesh_resampling(simplification_factor=0.8, max_vertices=15000):
     print('12/13 MESH RESAMPLING')
     task_dir = '12_mesh_resampling'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     input_mesh = model_dir + '/11_mesh_decimate/mesh.obj'
     output_mesh = '{}/{}/mesh.obj'.format(model_dir, task_dir)
@@ -245,7 +252,7 @@ def run_12_mesh_resampling(simplification_factor=0.8, max_vertices=15000):
 def run_13_texturing(texture_side=4096, downscale=4, unwrap_method='Basic'):
     print('13/13 TEXTURING')
     task_dir = '13_texturing'
-    os.mkdir('{}/{}'.format(model_dir, task_dir))
+    _mkdir('{}/{}'.format(model_dir, task_dir))
 
     images = model_dir + '/06_prepare_dense_scene'
     _input = model_dir + '/09_meshing/densePointCloud.abc'
@@ -262,39 +269,36 @@ def run_13_texturing(texture_side=4096, downscale=4, unwrap_method='Basic'):
     print(cmd)
     os.system(cmd)
 
-
-
 def main():
     startTime = time()
-    os.mkdir(model_dir)
-    num_images = len([name for name in os.listdir(imgDir) if os.path.isfile(os.path.join(imgDir, name))])
+    _mkdir(model_dir)
 
     print('progress: {}'.format(0 / 13. * 100))
-    run_01_camera_init(bin_dir, model_dir, imgDir)
+    run_01_camera_init()
     print('progress: {}'.format(1 / 13. * 100))
-    run_02_feature_extraction(bin_dir, model_dir, num_images)
+    run_02_feature_extraction()
     print('progress: {}'.format(2 / 13. * 100))
-    run_03_image_matching(bin_dir, model_dir)
+    run_03_image_matching()
     print('progress: {}'.format(3 / 13. * 100))
-    run_04_feature_matching(bin_dir, model_dir, num_images)
+    run_04_feature_matching()
     print('progress: {}'.format(4 / 13. * 100))
-    run_05_structure_from_motion(bin_dir, model_dir)
+    run_05_structure_from_motion()
     print('progress: {}'.format(5 / 13. * 100))
-    run_06_prepare_dense_scene(bin_dir, model_dir)
+    run_06_prepare_dense_scene()
     print('progress: {}'.format(6 / 13. * 100))
-    run_07_depth_map(bin_dir, model_dir, num_images)
+    run_07_depth_map()
     print('progress: {}'.format(7 / 13. * 100))
-    run_08_depth_map_filter(bin_dir, model_dir)
+    run_08_depth_map_filter()
     print('progress: {}'.format(8 / 13. * 100))
-    run_09_meshing(bin_dir, model_dir)
+    run_09_meshing()
     print('progress: {}'.format(9 / 13. * 100))
-    run_10_mesh_filtering(bin_dir, model_dir)
+    run_10_mesh_filtering()
     print('progress: {}'.format(10 / 13. * 100))
-    run_11_mesh_decimate(bin_dir, model_dir)
+    run_11_mesh_decimate()
     print('progress: {}'.format(11 / 13. * 100))
-    run_12_mesh_resampling(bin_dir, model_dir)
+    run_12_mesh_resampling()
     print('progress: {}'.format(12 / 13. * 100))
-    run_13_texturing(bin_dir, model_dir)
+    run_13_texturing()
     print('progress: {}'.format(13 / 13. * 100))
 
     print('DONE')

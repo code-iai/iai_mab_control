@@ -8,7 +8,6 @@ MAB is a bot to automatically create a 3D model of an object which was previousl
 
 - [Augsten, Andy](mailto:a.augsten@uni-bremen.de)
 - [Augsten, Dustin](mailto:augsten@uni-bremen.de)
-- [Montoya, David](mailto:davmon@uni-bremen.de)
 
 ## Requirements & Dependencies
 

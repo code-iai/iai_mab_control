@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from BaseHTTPServer import HTTPServer
+from re import match
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 import json
@@ -11,6 +12,8 @@ import threading
 class HTTPHandler(SimpleHTTPRequestHandler):
     process_model = None
     process_photogrammetry = None
+	process_photogrammetry_step = None
+	process_photogrammetry_step_max = None
 
     def translate_path(self, path):
         path = SimpleHTTPRequestHandler.translate_path(self, path)
@@ -38,13 +41,18 @@ class HTTPHandler(SimpleHTTPRequestHandler):
     def _update_process(self, process):
         while process.poll() is None:
             stdout = process.stdout.readline()
-            if stdout.startswith('progress:'):
+            if stdout.startswith('progress:') and process == self.process_model:
                 progress = stdout.rstrip().split()[1]
-                if process == self.process_model:
-                    print(progress + '%') # TODO: send progress to model acquisition progress websocket
-                elif process == self.process_photogrammetry:
-                    print(progress + '%') # TODO: send progress to photogrammetry progress websocket
-            else:
+				print(progress + '%') # TODO: send progress to model acquisition progress websocket
+            elif match('\[\d+/\d+\] *', stdout) and process == self.process_photogrammetry:
+			    self.process_photogrammetry_step = int(stdout[1:stdout.index('/')])
+				self.process_photogrammetry_step_max = float(stdout[stdout.index('/') + 1:stdout.index(']')])
+				progress = str(int(self.process_photogrammetry_step - 1 / self.process_photogrammetry_step_max * 100))
+				print(progress + '%') # TODO: send progress to photogrammetry progress websocket
+			elif self.process_photogrammetry_step is not None and self.process_photogrammetry_step_max is not None and stdout.startswith(' - elapsed time: ') and process == self.process_photogrammetry:
+			    progress = str(int(self.process_photogrammetry_step / self.process_photogrammetry_step_max * 100))
+				print(progress + '%') # TODO: send progress to photogrammetry progress websocket
+			else:
                 if process == self.process_model:
                     print(stdout) # TODO: send stdout to model acquisition log websocket
                 elif process == self.process_photogrammetry:
@@ -76,8 +84,8 @@ class HTTPHandler(SimpleHTTPRequestHandler):
                     self.process_model = subprocess.Popen(['rosrun', 'iai_mab_control', 'acquisition.py'] + params, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     threading.Thread(target=self._update_process, args=[self.process_model]).start()
                     self._send_ok()
-                elif 'working_dir' in request and 'meshroom_bin_dir' in request and 'type' in request and request['type'] == 'photogrammetry' and (process_photogrammetry is None or process_photogrammetry.poll() is not None):
-                    self.process_photogrammetry = subprocess.Popen(['python', app_dir + '../scripts/meshroom_cli.py', request['meshroom_bin_dir'], request['working_dir'] + '/out/model', request['working_dir'] + '/out/images'])
+                elif 'working_dir' in request and 'meshroom_dir' in request and 'type' in request and request['type'] == 'photogrammetry' and (process_photogrammetry is None or process_photogrammetry.poll() is not None):
+                    self.process_photogrammetry = subprocess.Popen([request['meshroom_dir'], '--input {}/out/images'.format(request['working_dir']), '--output {}/out/model'.format(request['working_dir']))
                     threading.Thread(target=self._update_process, args=[self.process_photogrammetry]).start()
                     self._send_ok()
                 else:

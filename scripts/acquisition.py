@@ -15,7 +15,7 @@ import tf
 
 def init():
     global move_group, robot, scene, turntable_client
-    global camera_size, distance_camera_object, num_positions, num_spins, object_size, simulation, turntable_pos
+    global camera_size, distance_camera_object, num_positions, num_spins, object_size, simulation, test, turntable_pos
 
     rospy.init_node('photogrammetry')
 
@@ -28,6 +28,7 @@ def init():
     photobox_pos = rospy.get_param('~photobox_pos', [0.0, -0.7, 0.0])
     photobox_size = rospy.get_param('~photobox_size', [1.0, 1.0, 1.0])
     simulation = rospy.get_param('~simulation', False)
+    test = rospy.get_param('~test', False)
     turntable_pos = photobox_pos
     turntable_pos[2] += 0.1 # TODO: measure turntable z-value in lab
 
@@ -40,7 +41,7 @@ def init():
 
     turntable_client = SimpleActionClient('scanning_table_action_server', scanning_tableAction)
 
-    if simulation:
+    if simulation or test:
         move_home()
         rospy.Subscriber('tf', TFMessage, send_turntable_tf, tf.TransformBroadcaster())
     elif not turntable_client.wait_for_server(rospy.Duration(10)):
@@ -170,7 +171,7 @@ if __name__ == '__main__':
     positions = create_arm_positions(num_positions)
     for position in positions:
         for face in ['top', 'center', 'bottom']:
-            if move_to(position, face=face):
+            if move_to(position, face=face) and not test:
                 for i in range(num_spins):
                     set_turntable_angle(360 * i / num_positions)
 

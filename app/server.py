@@ -67,8 +67,8 @@ class HTTPHandler(SimpleHTTPRequestHandler):
             path = self.path[5:]
 
             if path == 'start':
-                if 'type' in request and request['type'] == 'model' and (self.process_model is None or self.process_model.poll() is not None):
-                    params = []
+                if 'working_dir' in request and 'type' in request and request['type'] == 'model' and (self.process_model is None or self.process_model.poll() is not None):
+                    params = ['_output_directory:={}/out/images'.format(request['working_dir'])]
                     for key in request:
                         if key.startswith('_'):
                             params.append('{}:={}'.format(key, request[key]))
@@ -76,8 +76,9 @@ class HTTPHandler(SimpleHTTPRequestHandler):
                     self.process_model = subprocess.Popen(['rosrun', 'iai_mab_control', 'acquisition.py'] + params, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     threading.Thread(target=self._update_process, args=[self.process_model]).start()
                     self._send_ok()
-                elif 'type' in request and request['type'] == 'photogrammetry' and (process_photogrammetry is None or process_photogrammetry.poll() is not None):
-                    pass # TODO: start photogrammetry
+                elif 'working_dir' in request and 'meshroom_bin_dir' in request and 'type' in request and request['type'] == 'photogrammetry' and (process_photogrammetry is None or process_photogrammetry.poll() is not None):
+                    self.process_photogrammetry = subprocess.Popen(['python', app_dir + '../scripts/meshroom_cli.py', request['meshroom_bin_dir'], request['working_dir'] + '/out/model', request['working_dir'] + '/out/images'])
+                    threading.Thread(target=self._update_process, args=[self.process_photogrammetry]).start()
                     self._send_ok()
                 else:
                     self._send_error('BAD_REQUEST')
@@ -90,8 +91,6 @@ class HTTPHandler(SimpleHTTPRequestHandler):
                     self._send_ok()
                 else:
                     self._send_error('BAD_REQUEST')
-            elif path == 'test':
-                pass # TODO: test config by moving arm only without taking photos or moving the turntable
             elif path == 'loadSettings':
                 response = {}
 

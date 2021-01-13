@@ -1,0 +1,25 @@
+Nautilus-Share-Message: 12:05:38.542: Called "net usershare info" but it failed: Kindprozess »net« konnte nicht ausgeführt werden (No such file or directory)
+Nautilus-Share-Message: 12:05:51.033: Called "net usershare info" but it failed: Kindprozess »net« konnte nicht ausgeführt werden (No such file or directory)
+Nautilus-Share-Message: 12:14:00.459: Called "net usershare info" but it failed: Kindprozess »net« konnte nicht ausgeführt werden (No such file or directory)
+
+(gedit:1986): GtkSourceView-WARNING **: 12:21:49.786: gtk_source_search_context_set_settings() is deprecated, the GtkSourceSearchContext:settings property will become a construct-only property in a future version.
+
+(gedit:1986): GtkSourceView-WARNING **: 12:25:48.976: gtk_source_search_context_set_settings() is deprecated, the GtkSourceSearchContext:settings property will become a construct-only property in a future version.
+
+(gedit:1986): GtkSourceView-WARNING **: 12:30:05.582: gtk_source_search_context_set_settings() is deprecated, the GtkSourceSearchContext:settings property will become a construct-only property in a future version.
+
+(gedit:1986): GtkSourceView-WARNING **: 12:32:06.942: gtk_source_search_context_set_settings() is deprecated, the GtkSourceSearchContext:settings property will become a construct-only property in a future version.
+
+(gedit:1986): GtkSourceView-WARNING **: 12:37:09.962: gtk_source_search_context_set_settings() is deprecated, the GtkSourceSearchContext:settings property will become a construct-only property in a future version.
+
+(gedit:1986): GtkSourceView-WARNING **: 12:37:11.626: gtk_source_search_context_set_settings() is deprecated, the GtkSourceSearchContext:settings property will become a construct-only property in a future version.
+
+(gedit:1986): GtkSourceView-WARNING **: 12:39:37.785: gtk_source_search_context_set_settings() is deprecated, the GtkSourceSearchContext:settings property will become a construct-only property in a future version.
+
+(gedit:1986): GtkSourceView-WARNING **: 13:04:57.365: gtk_source_search_context_set_settings() is deprecated, the GtkSourceSearchContext:settings property will become a construct-only property in a future version.
+
+(gedit:1986): GtkSourceView-WARNING **: 13:32:05.131: gtk_source_search_context_set_settings() is deprecated, the GtkSourceSearchContext:settings property will become a construct-only property in a future version.
+
+(gedit:1986): GtkSourceView-WARNING **: 13:55:23.240: gtk_source_search_context_set_settings() is deprecated, the GtkSourceSearchContext:settings property will become a construct-only property in a future version.
+
+(gedit:1986): GtkSourceView-WARNING **: 13:57:34.991: gtk_source_search_context_set_settings() is deprecated, the GtkSourceSearchContext:settings property will become a construct-only property in a future version.

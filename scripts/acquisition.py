@@ -122,7 +122,6 @@ def move_to(position, orientation=None, face=None):
         pose.orientation.z = orientation[2]
         pose.orientation.w = orientation[3]
     else:
-        angle_y = None
         if face == 'top':
             angle_y = math.atan2(pose.position.z - turntable_pos[2] - object_size[2], pose.position.y - turntable_pos[1])
         elif face == 'bottom':
@@ -166,6 +165,7 @@ def create_arm_positions(n=15):
     return positions
 
 if __name__ == '__main__':
+    print('progress: 0')
     init()
 
     positions = create_arm_positions(num_positions)

@@ -29,7 +29,7 @@ They should be placed inside _~/catkin_ws/src/iai_robot_drivers/_. It is recomme
 
 To work with the Universal Robot UR5 the **ROS-Industrial Universal Robot meta-package** is required. Installation instructions can be found here: https://github.com/ros-industrial/universal_robot
 
-The robot is controlled using the **moveit_commander** package which can be installed using apt.
+The robot is controlled using the **moveit_commander** package which can be installed using _apt_.
 
 ```
 $ sudo apt install ros-melodic-moveit-commander
@@ -42,6 +42,12 @@ It is to be placed inside _~/catkin_ws/src/ubiquitousROS/_.
 For the bot to take photos using the Nikon Z6 II camera which is mounted on the UR5 **python-gphoto2** is required. For installation instructions follow: https://pypi.org/project/gphoto2/
 
 We recommend the installation using _pip_. Note that the dependency **libgphoto2-devel** is already included in the Desktop-Full Install of ROS Melodic and thus might not have to be installed manually.
+
+The Graphical User Interface uses WebSockets for communication between frontend and backend. For this the backend uses the **simple-websocket-server** which can be installed using _pip_.
+
+```
+$ pip install simple-websocket-server
+```
 
 And finally **Meshroom by AliceVision** needs to be downloaded as it is used by the application to create 3D models from the images. The most recent version can be downloaded from https://github.com/alicevision/meshroom/releases. We used version 2019.2.0. On Ubuntu the .tar.gz archive can be unpacked from the terminal using _tar_.
 
@@ -67,6 +73,10 @@ $ source ~/catkin_ws/source.bash
 ```
 
 Alternatively, start a new shell if you source it in _~/.bashrc_.
+
+## Configuration
+
+While most settings can be configured in the Graphical User Interface, some more general ones are fixed and have to be changed in _~/catkin_ws/src/iai_mab_control/app/settings/general.json_.
 
 ## Usage
 
@@ -115,7 +125,7 @@ If the bot is used in simulation the additional parameters _simulation_ and _com
 $ roslaunch iai_mab_control keyboard_controller.launch simulation:=True command_topic:=arm_controller/command
 ```
 
-## Graphical user interface (GUI)
+## Graphical User Interface (GUI)
 
 To use the GUI the server of the application needs to be started first.
 

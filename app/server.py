@@ -3,11 +3,14 @@
 from BaseHTTPServer import HTTPServer
 from re import match
 from SimpleHTTPServer import SimpleHTTPRequestHandler
+from simple_websocket_server import WebSocketServer, WebSocket
+from threading import Thread
 
 import json
 import os
 import subprocess
 import threading
+import time
 
 class HTTPHandler(SimpleHTTPRequestHandler):
     process_model = None
@@ -99,65 +102,6 @@ class HTTPHandler(SimpleHTTPRequestHandler):
                     self._send_ok()
                 else:
                     self._send_error('BAD_REQUEST')
-            elif path == 'loadSettings':
-                response = {}
-
-                with open(app_dir + '/settings/environment.json') as f:
-                    response['environment'] = { 'settings': json.loads(f.read()), 'path': os.path.abspath(f.name) }
-
-                with open(app_dir + '/settings/model.json') as f:
-                    response['model'] = json.loads(f.read())
-
-                with open(app_dir + '/settings/photogrammetry.json') as f:
-                    response['photogrammetry'] = json.loads(f.read())
-
-                self._send_ok(json.dumps(response), 'JSON')
-            elif path == 'deleteSettings':
-                if 'type' in request and (request['type'] == 'model' or request['type'] == 'photogrammetry') and 'name' in request:
-                    with open(app_dir + '/settings/' + request['type'] + '.json') as f:
-                        settings = json.loads(f.read())
-
-                    settings.pop(request['name'], None)
-
-                    with open(app_dir + '/settings/' + request['type'] + '.json', 'w') as f:
-                        f.write(json.dumps(settings))
-
-                    self._send_ok()
-                else:
-                    self._send_error('BAD_REQUEST')
-            elif path == 'saveSettings':
-                if 'type' in request and 'name' in request and 'settings' in request:
-                    if request['type'] == 'model' and 'camera_distance' in request['settings'] and 'num_positions' in request['settings'] and 'num_spins' in request['settings']:
-                        with open(app_dir + '/settings/model.json') as f:
-                            settings = json.loads(f.read())
-
-                        settings[request['name']] = {
-                            'camera_distance': request['settings']['camera_distance']
-                        ,   'num_positions': request['settings']['num_positions']
-                        ,   'num_spins': request['settings']['num_spins']
-                        }
-
-                        with open(app_dir + '/settings/model.json', 'w') as f:
-                            f.write(json.dumps(settings))
-
-                        self._send_ok()
-                    elif request['type'] == 'photogrammetry' and 'max_num_triangles' in request['settings'] and 'max_num_vertices' in request['settings']:
-                        with open(app_dir + '/settings/photogrammetry.json') as f:
-                            settings = json.loads(f.read())
-
-                        settings[request['name']] = {
-                            'max_num_triangles': request['settings']['max_num_triangles']
-                        ,   'max_num_vertices': request['settings']['max_num_vertices']
-                        }
-
-                        with open(app_dir + '/settings/photogrammetry.json', 'w') as f:
-                            f.write(json.dumps(settings))
-
-                        self._send_ok()
-                    else:
-                        self._send_error('BAD_REQUEST')
-                else:
-                    self._send_error('BAD_REQUEST')
             else:
                 self._send_error('NOT_FOUND')
         else:
@@ -168,13 +112,79 @@ class MyHTTPServer(HTTPServer):
         self.base_path = os.path.join(os.path.dirname(__file__), path)
         HTTPServer.__init__(self, ('', port), HTTPHandler)
 
+class WebSocketHandler(WebSocket):
+    def _send(self, op, msg=None):
+        self.send_message(json.dumps({ 'op': op, 'msg': msg }).decode('utf-8'))
+
+    def connected(self):
+        self.authenticated = False
+
+    def handle(self):
+        try:
+            data = json.loads(self.data)
+        except:
+            return
+
+        if 'op' not in data or 'msg' not in data:
+            return
+
+        op = data['op']
+        msg = data['msg']
+
+        if op == 'AUTH':
+            if self.authenticated:
+                return
+
+            with open(app_dir + '/settings/general.json') as f:
+                if msg == json.loads(f.read())['password']:
+                    self.authenticated = True
+                    settings = {}
+
+                    with open(app_dir + '/settings/model.json') as f:
+                        settings['model'] = json.loads(f.read())
+
+                    with open(app_dir + '/settings/photogrammetry.json') as f:
+                        settings['photogrammetry'] = json.loads(f.read())
+
+                    self._send('AUTH', settings)
+                else:
+                    self._send('AUTH')
+        else:
+            if not self.authenticated:
+                return
+
+            if op == 'DELETE':
+                if 'type' in msg and (msg['type'] == 'model' or msg['type'] == 'photogrammetry') and 'name' in msg:
+                    with open(app_dir + '/settings/' + msg['type'] + '.json') as f:
+                        settings = json.loads(f.read())
+
+                    settings.pop(msg['name'], None)
+
+                    with open(app_dir + '/settings/' + msg['type'] + '.json', 'w') as f:
+                        f.write(json.dumps(settings))
+
+                    self._send('DELETE', { 'type': msg['type'], 'name': msg['name'] })
+            elif op == 'SAVE':
+                if 'type' in msg and (msg['type'] == 'model' or msg['type'] == 'photogrammetry') and 'name' in msg and isinstance(msg['name'], basestring) and len(msg['name']) > 0 and 'params' in msg:
+                    with open(app_dir + '/settings/' + msg['type'] + '.json') as f:
+                        settings = json.loads(f.read())
+
+                    settings[msg['name']] = msg['params']
+
+                    with open(app_dir + '/settings/' + msg['type'] + '.json', 'w') as f:
+                        f.write(json.dumps(settings))
+
+                    self._send('SAVE', { 'type': msg['type'], 'name': msg['name'], 'params': msg['params'] })
+
 app_dir = os.path.dirname(os.path.abspath(__file__))
-httpd = MyHTTPServer()
 
-try:
-    httpd.serve_forever()
-except KeyboardInterrupt:
-    pass
+http_thread = Thread(target=lambda : MyHTTPServer().serve_forever())
+http_thread.daemon = True
+http_thread.start()
 
-httpd.server_close()
+socket_thread = Thread(target=lambda : WebSocketServer('', 8080, WebSocketHandler).serve_forever())
+socket_thread.daemon = True
+socket_thread.start()
 
+while True:
+    time.sleep(1)

@@ -66,6 +66,7 @@
   <build_depend>rospy</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>SimpleHTTPServer</build_depend>
+  <build_depend>simple_websocket_server</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>subprocess</build_depend>
   <build_depend>sys</build_depend>
@@ -87,6 +88,7 @@
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>sensor_msgs</build_export_depend>
   <build_export_depend>SimpleHTTPServer</build_export_depend>
+  <build_export_depend>simple_websocket_server</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>subprocess</build_export_depend>
   <build_export_depend>sys</build_export_depend>
@@ -108,6 +110,7 @@
   <exec_depend>rospy</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>SimpleHTTPServer</exec_depend>
+  <exec_depend>simple_websocket_server</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>subprocess</exec_depend>
   <exec_depend>sys</exec_depend>

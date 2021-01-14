@@ -14,8 +14,8 @@
 			<section id="connect">
 				<form>
 					<div class="form-floating mb-3">
-						<input type="number" min="1" max="65535" class="form-control" id="port" placeholder="WebSocket Port" value="8080" required>
-						<label for="port">WebSocket Port</label>
+						<input type="number" min="1" max="65535" class="form-control" id="port" placeholder="WebSocket port" value="8080" required>
+						<label for="port">WebSocket port</label>
 					</div>
 					<button type="submit" class="btn btn-primary"><i class="fas fa-spinner fa-spin me-2 d-none"></i>Connect</button>
 				</form>
@@ -26,27 +26,13 @@
 						<input type="password" class="form-control" id="password" placeholder="Password">
 						<label for="password">Password</label>
 					</div>
-					<button type="submit" class="btn btn-primary"><i class="fas fa-spinner fa-spin me-2 d-none"></i>Authenticate</button>
+					<button type="submit" class="btn btn-primary">Authenticate</button>
 				</form>
 			</section>
 			<section class="d-none" id="app">
-				<div class="d-none">
-					<textarea class="form-control bg-dark text-light mb-3" rows="10">> ...
-> ...
-> ...</textarea>
-					<div class="progress mb-3" style="height: 40px;">
-						<div class="progress-bar progress-bar-striped progress-bar-animated px-2 lead" style="min-width: 20%;">20%</div>
-					</div>
-					<p>Step 1 / 10: ...</p>
-					<button class="btn btn-danger">Cancel</button>
-				</div>
-				<div class="form-floating mb-3">
-					<input type="text" class="form-control" id="workingDirectory" placeholder="Working directory" value="~/">
-					<label for="workingDirectory">Working directory</label>
-				</div>
 				<ul class="nav nav-tabs mb-3">
 					<li class="nav-item">
-						<a class="nav-link active" href="#model" data-bs-toggle="tab">Model acquisition</a>
+						<a class="nav-link active" href="#model" data-bs-toggle="tab">Model Acquisition</a>
 					</li>
 					<li class="nav-item">
 						<a class="nav-link" href="#photogrammetry" data-bs-toggle="tab">Photogrammetry</a>
@@ -54,112 +40,138 @@
 				</ul>
 				<div class="tab-content">
 					<div class="tab-pane fade show active" id="model">
-						<div class="form-floating mb-3">
-							<input type="text" class="form-control" id="cameraDistance" placeholder="Camera distance to object">
-							<label for="cameraDistance">Camera distance to object</label>
-						</div>
-						<div class="form-floating mb-3">
-							<input type="number" class="form-control" id="numPositions" placeholder="Number of positions">
-							<label for="numPositions">Number of positions</label>
-						</div>
-						<div class="form-floating">
-							<input type="number" class="form-control" id="numSpins" placeholder="Number of spins">
-							<label for="numSpins">Number of spins</label>
-						</div>
-						<hr>
-						<div class="row g-3 mb-3">
-							<div class="col">
-								<div class="form-floating">
-									<select class="form-select" id="savedSettingsModel"></select>
-									<label for="savedSettingsModel">Saved settings</label>
-								</div>
+						<div id="settingsModel">
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="cameraDistance" placeholder="Camera distance to object">
+								<label for="cameraDistance">Camera distance to object</label>
 							</div>
-							<div class="col-auto">
-								<button type="button" class="btn btn-primary h-100 me-3" data-settings="model" data-action="load">Load</button><button type="button" class="btn btn-danger h-100" data-settings="model" data-action="delete"><i class="fas fa-spinner fa-spin me-2 d-none"></i>Delete</button>
+							<div class="form-floating mb-3">
+								<input type="number" class="form-control" id="numPositions" placeholder="Number of positions">
+								<label for="numPositions">Number of positions</label>
 							</div>
-						</div>
-						<form data-save="model">
-							<div class="row g-3 mb-5">
+							<div class="form-floating">
+								<input type="number" class="form-control" id="numSpins" placeholder="Number of spins">
+								<label for="numSpins">Number of spins</label>
+							</div>
+							<hr>
+							<div class="row g-3 mb-3">
 								<div class="col">
 									<div class="form-floating">
-										<input type="text" class="form-control" id="nameModel" placeholder="Name" required>
-										<label for="nameModel">Name</label>
+										<select class="form-select" id="savedSettingsModel"></select>
+										<label for="savedSettingsModel">Saved settings</label>
 									</div>
 								</div>
 								<div class="col-auto">
-									<button type="submit" class="btn btn-primary h-100"><i class="fas fa-spinner fa-spin me-2 d-none"></i>Save</button>
+									<button type="button" class="btn btn-primary h-100 me-3" data-settings="model" data-action="load">Load</button><button type="button" class="btn btn-danger h-100" data-settings="model" data-action="delete">Delete</button>
 								</div>
 							</div>
-						</form>
-						<div class="form-floating mb-3">
-							<input type="text" class="form-control" id="objectWidth" placeholder="Object width">
-							<label for="objectWidth">Object width</label>
+							<form class="mb-5" data-save="model">
+								<div class="row g-3">
+									<div class="col">
+										<div class="form-floating">
+											<input type="text" class="form-control" id="nameModel" placeholder="Name" required>
+											<label for="nameModel">Name</label>
+										</div>
+									</div>
+									<div class="col-auto">
+										<button type="submit" class="btn btn-primary h-100">Save</button>
+									</div>
+								</div>
+							</form>
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="workingDirModel" placeholder="Working directory" value="~/">
+								<label for="workingDirModel">Working directory</label>
+							</div>
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="objectWidth" placeholder="Object width">
+								<label for="objectWidth">Object width</label>
+							</div>
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="objectLength" placeholder="Object length">
+								<label for="objectLength">Object length</label>
+							</div>
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="objectHeight" placeholder="Object height">
+								<label for="objectHeight">Object height</label>
+							</div>
+							<div class="form-check mb-3">
+								<input type="checkbox" class="form-check-input" id="simulation">
+								<label class="form-check-label" for="simulation">Simulation</label>
+							</div>
+							<button class="btn btn-secondary me-3" id="test">Test</button><button class="btn btn-primary" id="startModel">Start</button>
 						</div>
-						<div class="form-floating mb-3">
-							<input type="text" class="form-control" id="objectLength" placeholder="Object length">
-							<label for="objectLength">Object length</label>
+						<div class="d-none" id="processModel">
+							<textarea class="form-control bg-dark text-light mb-3" rows="10"></textarea>
+							<div class="progress mb-3" style="height: 40px;">
+								<div class="progress-bar progress-bar-striped progress-bar-animated px-2 lead"></div>
+							</div>
+							<button class="btn btn-primary" data-close="model">Close</button><button class="btn btn-danger" data-stop="model">Stop</button>
 						</div>
-						<div class="form-floating mb-3">
-							<input type="text" class="form-control" id="objectHeight" placeholder="Object height">
-							<label for="objectHeight">Object height</label>
-						</div>
-						<div class="form-check mb-3">
-							<input type="checkbox" class="form-check-input" id="simulation" value="">
-							<label class="form-check-label" for="simulation">Simulation</label>
-						</div>
-						<button class="btn btn-secondary me-3">Test</button><button class="btn btn-primary">Start</button>
 					</div>
 					<div class="tab-pane fade" id="photogrammetry">
-						<div class="form-floating mb-3">
-							<input type="number" class="form-control" id="maxNumTriangles" placeholder="Maximum number of triangles">
-							<label for="maxNumTriangles">Maximum number of triangles</label>
-						</div>
-						<div class="form-floating">
-							<input type="number" class="form-control" id="maxNumVertices" placeholder="Maximum number of vertices">
-							<label for="maxNumVertices">Maximum number of vertices</label>
-						</div>
-						<hr>
-						<div class="row g-3 mb-3">
-							<div class="col">
-								<div class="form-floating">
-									<select class="form-select" id="savedSettingsPhotogrammetry"></select>
-									<label for="savedSettingsPhotogrammetry">Saved settings</label>
-								</div>
+						<div id="settingsPhotogrammetry">
+							<div class="form-floating mb-3">
+								<input type="number" class="form-control" id="maxNumTriangles" placeholder="Maximum number of triangles">
+								<label for="maxNumTriangles">Maximum number of triangles</label>
 							</div>
-							<div class="col-auto">
-								<button type="button" class="btn btn-primary h-100 me-3" data-settings="photogrammetry" data-action="load">Load</button><button type="button" class="btn btn-danger h-100" data-settings="photogrammetry" data-action="delete"><i class="fas fa-spinner fa-spin me-2 d-none"></i>Delete</button>
+							<div class="form-floating">
+								<input type="number" class="form-control" id="maxNumVertices" placeholder="Maximum number of vertices">
+								<label for="maxNumVertices">Maximum number of vertices</label>
 							</div>
-						</div>
-						<form data-save="photogrammetry">
-							<div class="row g-3 mb-5">
+							<hr>
+							<div class="row g-3 mb-3">
 								<div class="col">
 									<div class="form-floating">
-										<input type="text" class="form-control" id="namePhotogrammetry" placeholder="Name" required>
-										<label for="namePhotogrammetry">Name</label>
+										<select class="form-select" id="savedSettingsPhotogrammetry"></select>
+										<label for="savedSettingsPhotogrammetry">Saved settings</label>
 									</div>
 								</div>
 								<div class="col-auto">
-									<button type="submit" class="btn btn-primary h-100"><i class="fas fa-spinner fa-spin me-2 d-none"></i>Save</button>
+									<button type="button" class="btn btn-primary h-100 me-3" data-settings="photogrammetry" data-action="load">Load</button><button type="button" class="btn btn-danger h-100" data-settings="photogrammetry" data-action="delete">Delete</button>
 								</div>
 							</div>
-						</form>
-						<div class="form-floating mb-3">
-							<input type="text" class="form-control" id="fileName" placeholder="File name" value="model">
-							<label for="fileName">File name</label>
-						</div>
-						<div class="mb-3">
-							<span class="me-3">Formats:</span><div class="form-check form-check-inline">
-								<input type="checkbox" class="form-check-input" id="formatFBX" checked>
-								<label class="form-check-label" for="formatFBX">FBX</label>
-							</div><div class="form-check form-check-inline">
-								<input type="checkbox" class="form-check-input" id="formatSTL" checked>
-								<label class="form-check-label" for="formatSTL">STL</label>
-							</div><div class="form-check form-check-inline">
-								<input type="checkbox" class="form-check-input" id="formatDAE" checked>
-								<label class="form-check-label" for="formatDAE">DAE</label>
+							<form class="mb-5" data-save="photogrammetry">
+								<div class="row g-3">
+									<div class="col">
+										<div class="form-floating">
+											<input type="text" class="form-control" id="namePhotogrammetry" placeholder="Name" required>
+											<label for="namePhotogrammetry">Name</label>
+										</div>
+									</div>
+									<div class="col-auto">
+										<button type="submit" class="btn btn-primary h-100">Save</button>
+									</div>
+								</div>
+							</form>
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="workingDirPhotogrammetry" placeholder="Working directory" value="~/">
+								<label for="workingDirPhotogrammetry">Working directory</label>
 							</div>
+							<div class="form-floating mb-3">
+								<input type="text" class="form-control" id="fileName" placeholder="File name" value="model">
+								<label for="fileName">File name</label>
+							</div>
+							<div class="mb-3">
+								<span class="me-3">Formats:</span><div class="form-check form-check-inline">
+									<input type="checkbox" class="form-check-input" id="formatFBX">
+									<label class="form-check-label" for="formatFBX">FBX</label>
+								</div><div class="form-check form-check-inline">
+									<input type="checkbox" class="form-check-input" id="formatSTL">
+									<label class="form-check-label" for="formatSTL">STL</label>
+								</div><div class="form-check form-check-inline">
+									<input type="checkbox" class="form-check-input" id="formatDAE">
+									<label class="form-check-label" for="formatDAE">DAE</label>
+								</div>
+							</div>
+							<button class="btn btn-primary" id="startPhotogrammetry">Start</button>
 						</div>
-						<button class="btn btn-primary">Start</button>
+						<div class="d-none" id="processPhotogrammetry">
+							<textarea class="form-control bg-dark text-light mb-3" rows="10"></textarea>
+							<div class="progress mb-3" style="height: 40px;">
+								<div class="progress-bar progress-bar-striped progress-bar-animated px-2 lead"></div>
+							</div>
+							<button class="btn btn-primary" data-close="photogrammetry">Close</button><button class="btn btn-danger" data-stop="photogrametry">Stop</button>
+						</div>
 					</div>
 				</div>
 			</section>
@@ -168,9 +180,16 @@
 			<a target="_blank" href="https://github.com/code-iai/iai_mab_control"><i class="fab fa-github fa-2x fa-fw"></i></a>
 		</footer>
 		<script src="/assets/js/bootstrap.bundle.min.js"></script>
+		<!-- TODO create script for modals -->
 		<script>
 		const connect = document.querySelector('#connect');
 		const authenticate = document.querySelector('#authenticate');
+
+		const settingsModel = document.querySelector('#settingsModel');
+		const processModel = document.querySelector('#processModel');
+
+		const settingsPhotogrammetry = document.querySelector('#settingsPhotogrammetry');
+		const processPhotogrammetry = document.querySelector('#processPhotogrammetry');
 
 		var connection;
 		var settings;
@@ -190,10 +209,21 @@
 			});
 		}
 
+		function updateProgressBar(type, progress) {
+			const bar = (type == 'model' ? processModel : processPhotogrammetry).querySelector('.progress-bar');
+			bar.style.minWidth = progress + '%';
+			bar.innerText = progress + '%';
+		}
+
 		connect.querySelector('form').addEventListener('submit', function(e) {
 			e.preventDefault();
-			const spinner = this.querySelector('.fa-spinner');
-			spinner.classList.remove('d-none');
+			const spinner = this.querySelector('.fa-spinner').classList;
+
+			if (!spinner.contains('d-none')) {
+				return;
+			}
+
+			spinner.remove('d-none');
 			connection = new WebSocket('ws://' + location.hostname + ':' + this.querySelector('#port').value);
 
 			connection.onopen = function() {
@@ -203,9 +233,9 @@
 
 			connection.onclose = function(e) {
 				if (connect.classList.contains('d-none')) {
-					location.reload();
+					alert('Connection lost. Reload to continue.');
 				} else {
-					spinner.classList.add('d-none');
+					spinner.add('d-none');
 					alert('Failed to connect.');
 				}
 			};
@@ -215,9 +245,7 @@
 				const msg = data.msg;
 
 				switch (data.op) {
-					case 'AUTH':
-						authenticate.querySelector('.fa-spinner').classList.add('d-none');
-
+					case 'AUTH_RESPONSE': {
 						if (msg) {
 							settings = msg;
 							updateSettings('model');
@@ -229,23 +257,46 @@
 						}
 
 						break;
-					case 'DELETE':
-						document.querySelector('[data-settings="' + msg.type + '"][data-action="delete"] .fa-spinner').classList.add('d-none');
-						delete settings[msg.type][msg.name];
-						updateSettings(msg.type);
+					}
+
+					case 'START': {
+						(msg == 'model' ? settingsModel : settingsPhotogrammetry).classList.add('d-none');
+						const container = (msg == 'model' ? processModel : processPhotogrammetry);
+						container.classList.remove('d-none');
+						container.querySelector('textarea').value = '';
+						updateProgressBar(msg, 0);
+						container.querySelector('[data-close]').classList.add('d-none');
+						container.querySelector('[data-stop]').classList.remove('d-none');
 						break;
-					case 'SAVE':
-						document.querySelector('[data-save="' + msg.type + '"] .fa-spinner').classList.add('d-none');
-						settings[msg.type][msg.name] = msg.params;
-						updateSettings(msg.type);
+					}
+
+					case 'STOP': {
+						const container = (msg == 'model' ? processModel : processPhotogrammetry);
+						container.querySelector('[data-stop]').classList.add('d-none');
+						container.querySelector('[data-close]').classList.remove('d-none');
 						break;
+					}
+
+					case 'PROGRESS': {
+						updateProgressBar(msg.type, msg.value);
+						break;
+					}
+
+					case 'CONSOLE': {
+						const console = (msg.type == 'model' ? processModel : processPhotogrammetry).querySelector('textarea');
+						const scroll = console.scrollTop + console.clientHeight >= console.scrollHeight;
+						console.value += msg.text;
+
+						if (scroll) {
+							console.scrollTop = console.scrollHeight;
+						}
+					}
 				}
 			};
 		});
 
 		authenticate.querySelector('form').addEventListener('submit', function(e) {
 			e.preventDefault();
-			this.querySelector('.fa-spinner').classList.remove('d-none');
 			send('AUTH', this.querySelector('#password').value);
 		});
 
@@ -255,18 +306,26 @@
 				const name = document.querySelector('#savedSettings' + (type == 'model' ? 'Model' : 'Photogrammetry')).value;
 
 				if (name) {
-					if (this.getAttribute('data-action') == 'load') {
-						const params = settings[type][name];
+					const action = this.getAttribute('data-action');
 
-						Object.keys(params).forEach(function(param) {
-							document.querySelector('#' + param).value = params[param];
-						});
+					switch (action) {
+						case 'load': {
+							const params = settings[type][name];
 
-						document.querySelector('#name' + (type == 'model' ? 'Model' : 'Photogrammetry')).value = name;
-					} else {
-						const spinner = this.querySelector('.fa-spinner');
-						spinner.classList.remove('d-none');
-						send('DELETE', { type: type, name: name });
+							Object.keys(params).forEach(function(param) {
+								document.querySelector('#' + param).value = params[param];
+							});
+
+							document.querySelector('#name' + (type == 'model' ? 'Model' : 'Photogrammetry')).value = name;
+							break;
+						}
+
+						case 'delete': {
+							delete settings[type][name];
+							updateSettings(type);
+							send('DELETE', { type: type, name: name });
+							break;
+						}
 					}
 				}
 			});
@@ -275,8 +334,6 @@
 		document.querySelectorAll('[data-save]').forEach(function(f) {
 			f.addEventListener('submit', function(e) {
 				e.preventDefault();
-				const spinner = this.querySelector('.fa-spinner');
-				spinner.classList.remove('d-none');
 				const type = this.getAttribute('data-save');
 				const name = document.querySelector('#name' + (type == 'model' ? 'Model' : 'Photogrammetry')).value;
 				const params = {};
@@ -285,7 +342,117 @@
 					params[param] = document.querySelector('#' + param).value;
 				});
 
+				settings[type][name] = params;
+				updateSettings(type);
 				send('SAVE', { type: type, name: name, params: params });
+			});
+		});
+
+		settingsModel.querySelectorAll('#test,#startModel').forEach(function(btn) {
+			btn.addEventListener('click', function() {
+				const cameraDistance = document.querySelector('#cameraDistance').value;
+
+				if (!cameraDistance.length) {
+					alert('Please enter the camera distance to object.');
+					return;
+				}
+
+				const numPositions = document.querySelector('#numPositions').value;
+
+				if (!numPositions.length) {
+					alert('Please enter the number of positions.');
+					return;
+				}
+
+				const numSpins = document.querySelector('#numSpins').value;
+
+				if (!numSpins.length) {
+					alert('Please enter the number of spins.');
+					return;
+				}
+
+				const workingDir = document.querySelector('#workingDirModel').value;
+
+				if (!workingDir.length) {
+					alert('Please enter the working directory.');
+					return;
+				}
+
+				const objectWidth = document.querySelector('#objectWidth').value;
+
+				if (!objectWidth.length) {
+					alert('Please enter the object width.');
+					return;
+				}
+
+				const objectLength = document.querySelector('#objectLength').value;
+
+				if (!objectLength.length) {
+					alert('Please enter the object length.');
+					return;
+				}
+
+				const objectHeight = document.querySelector('#objectHeight').value;
+
+				if (!objectHeight.length) {
+					alert('Please enter the object height.');
+					return;
+				}
+
+				// TODO validate settings (using regex)
+
+				send('START', { type: 'model', workingDir: workingDir, '_distance_camera_object': cameraDistance, '_num_positions': numPositions, '_num_spins': numSpins, '_object_size': '[' + objectWidth + ', ' + objectLength + ', ' + objectHeight + ']', '_simulation': document.querySelector('#simulation').checked, '_test': this.id == 'test' });
+			});
+		});
+
+		settingsPhotogrammetry.querySelector('#startPhotogrammetry').addEventListener('click', function() {
+			const maxNumTriangles = document.querySelector('#maxNumTriangles').value;
+
+			if (!maxNumTriangles.length) {
+				alert('Please enter the maximum number of triangles.');
+				return;
+			}
+
+			const maxNumVertices = document.querySelector('#maxNumVertices').value;
+
+			if (!maxNumVertices.length) {
+				alert('Please enter the maximum number of vertices.');
+				return;
+			}
+
+			const workingDir = document.querySelector('#workingDirModel').value;
+
+			if (!workingDir.length) {
+				alert('Please enter the working directory.');
+				return;
+			}
+
+			const formatFBX = document.querySelector('#formatFBX').checked;
+			const formatSTL = document.querySelector('#formatSTL').checked;
+			const formatDAE = document.querySelector('#formatDAE').checked;
+
+			// TODO validate settings (using regex)
+
+			settingsPhotogrammetry.classList.add('d-none');
+			processPhotogrammetry.classList.remove('d-none');
+			send('START', { type: 'photogrammetry', workingDir: workingDir, maxNumberTriangles: maxNumTriangles, maxNumberVertices: maxNumVertices, exportFBX: document.querySelector('#formatFBX').checked, exportSTL: document.querySelector('#formatSTL').checked, exportDAE: document.querySelector('#formatDAE').checked });
+		});
+
+		document.querySelectorAll('[data-close]').forEach(function(btn) {
+			btn.addEventListener('click', function() {
+				if (this.getAttribute('data-close') == 'model') {
+					processModel.classList.add('d-none');
+					settingsModel.classList.remove('d-none');
+				} else {
+					processPhotogrammetry.classList.add('d-none');
+					settingsPhotogrammetry.classList.remove('d-none');
+				}
+			});
+		});
+
+		document.querySelectorAll('[data-stop]').forEach(function(btn) {
+			btn.addEventListener('click', function() {
+				send('STOP', this.getAttribute('data-stop'));
 			});
 		});
 		</script>

@@ -85,7 +85,7 @@ class HTTPHandler(SimpleHTTPRequestHandler):
                     threading.Thread(target=self._update_process, args=[self.process_model]).start()
                     self._send_ok()
                 elif 'working_dir' in request and 'meshroom_dir' in request and 'type' in request and request['type'] == 'photogrammetry' and (process_photogrammetry is None or process_photogrammetry.poll() is not None):
-                    self.process_photogrammetry = subprocess.Popen([request['meshroom_dir'], '--input {}/out/images'.format(request['working_dir']), '--output {}/out/model'.format(request['working_dir']))
+                    self.process_photogrammetry = subprocess.Popen([request['meshroom_dir'], '--input {}/out/images'.format(request['working_dir']), '--output {}/out/model'.format(request['working_dir'])], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     threading.Thread(target=self._update_process, args=[self.process_photogrammetry]).start()
                     self._send_ok()
                 else:

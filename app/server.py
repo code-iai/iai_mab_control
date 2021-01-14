@@ -135,15 +135,15 @@ class WebSocketHandler(WebSocket):
             if self.authenticated:
                 return
 
-            with open(app_dir + '/settings/general.json') as f:
+            with open(settings_dir + 'general.json') as f:
                 if msg == json.loads(f.read())['password']:
                     self.authenticated = True
                     settings = {}
 
-                    with open(app_dir + '/settings/model.json') as f:
+                    with open(settings_dir + 'model.json') as f:
                         settings['model'] = json.loads(f.read())
 
-                    with open(app_dir + '/settings/photogrammetry.json') as f:
+                    with open(settings_dir + 'photogrammetry.json') as f:
                         settings['photogrammetry'] = json.loads(f.read())
 
                     self._send('AUTH', settings)
@@ -155,28 +155,29 @@ class WebSocketHandler(WebSocket):
 
             if op == 'DELETE':
                 if 'type' in msg and (msg['type'] == 'model' or msg['type'] == 'photogrammetry') and 'name' in msg:
-                    with open(app_dir + '/settings/' + msg['type'] + '.json') as f:
+                    with open(settings_dir + msg['type'] + '.json') as f:
                         settings = json.loads(f.read())
 
                     settings.pop(msg['name'], None)
 
-                    with open(app_dir + '/settings/' + msg['type'] + '.json', 'w') as f:
+                    with open(settings_dir + msg['type'] + '.json', 'w') as f:
                         f.write(json.dumps(settings))
 
                     self._send('DELETE', { 'type': msg['type'], 'name': msg['name'] })
             elif op == 'SAVE':
                 if 'type' in msg and (msg['type'] == 'model' or msg['type'] == 'photogrammetry') and 'name' in msg and isinstance(msg['name'], basestring) and len(msg['name']) > 0 and 'params' in msg:
-                    with open(app_dir + '/settings/' + msg['type'] + '.json') as f:
+                    with open(settings_dir + msg['type'] + '.json') as f:
                         settings = json.loads(f.read())
 
                     settings[msg['name']] = msg['params']
 
-                    with open(app_dir + '/settings/' + msg['type'] + '.json', 'w') as f:
+                    with open(settings_dir + msg['type'] + '.json', 'w') as f:
                         f.write(json.dumps(settings))
 
                     self._send('SAVE', { 'type': msg['type'], 'name': msg['name'], 'params': msg['params'] })
 
 app_dir = os.path.dirname(os.path.abspath(__file__))
+settings_dir = app_dir + '/settings/'
 
 http_thread = Thread(target=lambda : MyHTTPServer().serve_forever())
 http_thread.daemon = True

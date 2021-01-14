@@ -173,7 +173,7 @@ if __name__ == '__main__':
         for face in ['top', 'center', 'bottom']:
             if move_to(position, face=face) and not test:
                 for i in range(num_spins):
-                    set_turntable_angle(360 * i / num_positions)
+                    set_turntable_angle(360 * i / num_spins)
 
                     if not simulation:
                         if camera.capture() is None:

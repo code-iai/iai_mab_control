@@ -12,8 +12,8 @@ import threading
 class HTTPHandler(SimpleHTTPRequestHandler):
     process_model = None
     process_photogrammetry = None
-	process_photogrammetry_step = None
-	process_photogrammetry_step_max = None
+    process_photogrammetry_step = None
+    process_photogrammetry_step_max = None
 
     def translate_path(self, path):
         path = SimpleHTTPRequestHandler.translate_path(self, path)
@@ -43,16 +43,16 @@ class HTTPHandler(SimpleHTTPRequestHandler):
             stdout = process.stdout.readline()
             if stdout.startswith('progress:') and process == self.process_model:
                 progress = stdout.rstrip().split()[1]
-				print(progress + '%') # TODO: send progress to model acquisition progress websocket
+                print(progress + '%') # TODO: send progress to model acquisition progress websocket
             elif match('\[\d+/\d+\] *', stdout) and process == self.process_photogrammetry:
-			    self.process_photogrammetry_step = int(stdout[1:stdout.index('/')])
-				self.process_photogrammetry_step_max = float(stdout[stdout.index('/') + 1:stdout.index(']')])
-				progress = str(int(self.process_photogrammetry_step - 1 / self.process_photogrammetry_step_max * 100))
-				print(progress + '%') # TODO: send progress to photogrammetry progress websocket
-			elif self.process_photogrammetry_step is not None and self.process_photogrammetry_step_max is not None and stdout.startswith(' - elapsed time: ') and process == self.process_photogrammetry:
-			    progress = str(int(self.process_photogrammetry_step / self.process_photogrammetry_step_max * 100))
-				print(progress + '%') # TODO: send progress to photogrammetry progress websocket
-			else:
+                self.process_photogrammetry_step = int(stdout[1:stdout.index('/')])
+                self.process_photogrammetry_step_max = float(stdout[stdout.index('/') + 1:stdout.index(']')])
+                progress = str(int(self.process_photogrammetry_step - 1 / self.process_photogrammetry_step_max * 100))
+                print(progress + '%') # TODO: send progress to photogrammetry progress websocket
+            elif self.process_photogrammetry_step is not None and self.process_photogrammetry_step_max is not None and stdout.startswith(' - elapsed time: ') and process == self.process_photogrammetry:
+                progress = str(int(self.process_photogrammetry_step / self.process_photogrammetry_step_max * 100))
+                print(progress + '%') # TODO: send progress to photogrammetry progress websocket
+            else:
                 if process == self.process_model:
                     print(stdout) # TODO: send stdout to model acquisition log websocket
                 elif process == self.process_photogrammetry:

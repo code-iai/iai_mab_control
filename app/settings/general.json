@@ -1,6 +1,6 @@
 {
     "camera_size": "[0.1, 0.1, 0.1]",
-    "meshroom_dir": "",
+    "meshroom_dir": "~/Meshroom",
     "password": "",
     "photobox_pos": "[0.0, -0.7, 0.0]",
     "photobox_size": "[1.0, 1.0, 1.0]"

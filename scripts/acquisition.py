@@ -157,15 +157,17 @@ def create_arm_positions(n=15):
 
     div = object_size[1] / 2 + object_size[2]
     positions = []
-    for y in numpy.linspace(min_y, max_y, n / div * object_size[1] / 2):
+    for y in numpy.linspace(min_y, max_y, round(n / div * object_size[1] / 2)):
         positions.append([0.0, y, max_z])
-    for z in numpy.linspace(max_z, min_z, n / div * object_size[2])[1:]:
+    for z in numpy.linspace(max_z, min_z, round(n / div * object_size[2]) + 1)[1:]:
         positions.append([0.0, max_y, z])
 
     return positions
 
 if __name__ == '__main__':
     print('progress: 0')
+    sys.stdout.flush()
+
     init()
 
     positions = create_arm_positions(num_positions)
@@ -179,6 +181,7 @@ if __name__ == '__main__':
                         if camera.capture() is None:
                             pass # TODO: handle capture failure
         print('progress: {}'.format(int(float(positions.index(position) + 1) / len(positions) * 100)))
+        sys.stdout.flush()
         rospy.sleep(1)
     camera.exit()
     move_home()

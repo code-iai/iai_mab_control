@@ -102,13 +102,13 @@ class WebSocketHandler(WebSocket):
                     if process_model is not None:
                         return
 
-                    params = ['_output_directory:=\'{}/out/images\''.format(msg['workingDir'])]
+                    params = ['_output_directory:={}/out/images'.format(os.path.expanduser(msg['workingDir']))]
 
                     with open(settings_dir + 'general.json') as f:
                         settings = json.loads(f.read())
 
                     for param in ['camera_size', 'photobox_pos', 'photobox_size']:
-                        params.append('_{}:=\'{}\''.format(param, settings[param]))
+                        params.append('_{}:={}'.format(param, settings[param]))
 
                     for param in msg:
                         if param.startswith('_'):
@@ -121,7 +121,7 @@ class WebSocketHandler(WebSocket):
                         return
 
                     with open(settings_dir + 'general.json') as f:
-                        process_photogrammetry = subprocess.Popen([json.loads(f.read())['meshroom_dir'], '--input \'{}/out/images\''.format(msg['workingDir']), '--output \'{}/out/model\''.format(msg['workingDir'])], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                        process_photogrammetry = subprocess.Popen([os.path.expanduser('{}/meshroom_photogrammetry'.format(json.loads(f.read())['meshroom_dir'])), '--input', os.path.expanduser('{}/out/images'.format(msg['workingDir'])), '--output', os.path.expanduser('{}/out/model'.format(msg['workingDir']))], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                     Thread(target=update_process, args=[process_photogrammetry]).start()
 

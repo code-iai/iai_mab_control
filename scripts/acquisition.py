@@ -9,18 +9,23 @@ from tf2_msgs.msg import TFMessage
 import camera
 import math
 import numpy
+import os
 import rospy
 import sys
 import tf
 
 def init():
     global move_group, robot, scene, turntable_client
-    global camera_size, distance_camera_object, num_positions, num_spins, object_size, simulation, test, turntable_pos
+    global camera_mesh, camera_orientation, camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, simulation, test, turntable_pos
 
     rospy.init_node('photogrammetry')
 
+    camera_mesh = rospy.get_param('~camera_mesh', None)
+    camera_orientation = rospy.get_param('~camera_orientation', None)
+    camera_pos = rospy.get_param('~camera_pos', [0.0, 0.0, 0.0])
     camera_size = rospy.get_param('~camera_size', [0.1, 0.1, 0.1])
     distance_camera_object = rospy.get_param('~distance_camera_object', 0.2)
+    max_velocity = rospy.get_param('~max_velocity', 0.1)
     num_positions = rospy.get_param('~num_positions', 15)
     num_spins = rospy.get_param('~num_spins', 8)
     object_size = numpy.array(rospy.get_param('~object_size', [0.2, 0.2, 0.2]))
@@ -33,7 +38,7 @@ def init():
     turntable_pos[2] += 0.1 # TODO: measure turntable z-value in lab
 
     move_group = MoveGroupCommander('manipulator')
-    move_group.set_max_velocity_scaling_factor(1.0 if simulation else 0.1)
+    move_group.set_max_velocity_scaling_factor(1.0 if simulation else max_velocity)
 
     robot = RobotCommander()
 
@@ -83,14 +88,29 @@ def init():
 
     # add camera
     eef_link = move_group.get_end_effector_link()
+    ps = PoseStamped()
+    ps.header.frame_id = eef_link
 
     scene.remove_attached_object(eef_link, 'camera')
     scene.remove_world_object('camera')
 
-    ps = PoseStamped()
-    ps.header.frame_id = eef_link
-    ps.pose.position.x = camera_size[0] / 2
-    scene.attach_box(eef_link, 'camera', ps, camera_size)
+    if camera_mesh:
+        ps.pose.position.x = camera_pos[0]
+        ps.pose.position.y = camera_pos[1]
+        ps.pose.position.z = camera_pos[2]
+
+        quaternion = tf.transformations.quaternion_from_euler(math.radians(camera_orientation[0]), math.radians(camera_orientation[1]), math.radians(camera_orientation[2]))
+        ps.pose.orientation.x = quaternion[0]
+        ps.pose.orientation.y = quaternion[1]
+        ps.pose.orientation.z = quaternion[2]
+        ps.pose.orientation.w = quaternion[3]
+
+        scene.attach_mesh(eef_link, 'camera', ps, os.path.expanduser(camera_mesh), camera_size)
+    else:
+        ps.pose.position.x = camera_pos[0] + camera_size[0] / 2
+        ps.pose.position.y = camera_pos[1]
+        ps.pose.position.z = camera_pos[2]
+        scene.attach_box(eef_link, 'camera', ps, camera_size)
 
 def send_turntable_tf(msg, tb):
     try:

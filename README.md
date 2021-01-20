@@ -88,22 +88,20 @@ $ rosrun iai_mab_control acquisition.py
 
 The following optional parameters can be set by adding them to the _rosrun_ command.
 
-| Parameter              | Description                                                                                                                                          | Example                                                           |
-|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| camera_mesh            | Path of the mesh to use for the camera.                                                                                                              | _camera_mesh:='~/catkin_ws/src/iai_mab_control/models/camera.stl' |
-| camera_orientation     | The camera mesh rotation around the x, y and z axes in degrees.                                                                                      | _camera_orientation:='[90, 0, 90]'                                |
-| camera_pos             | Position of the attached camera relative to the attachment link.                                                                                     | _camera_pos:='[0.0, 0.0, 0.0]'                                    |
-| camera_size            | Width, length and height of the attached camera. If a camera mesh is used it describes the width, length and height scale factor.                    | _camera_size:='[0.1, 0.1, 0.1]'                                   |
-| distance_camera_object | The distance between the camera and the object at all positions.                                                                                     | _distance_camera_object:=0.2                                      |
-| max_velocity           | The maximum velocity the robot arm is moving at.                                                                                                     | _max_velocity:=0.1                                                |
-| num_positions          | Number of positions around the object that the robot should move to.                                                                                 | _num_positions:=15                                                |
-| num_spins              | Number of spins the turntable should do for each position of the robot.                                                                              | _num_spins:=8                                                     |
-| object_size            | Width, length and height of the object on the turntable.                                                                                             | _object_size:='[0.2, 0.2, 0.2]'                                   |
-| output_directory       | The directory to store captured photos into.                                                                                                         | _output_directory:='out'                                          |
-| photobox_pos           | Center position of the photobox ground plane.                                                                                                        | _photobox_pos:='[0.0, -0.7, 0.0]'                                 |
-| photobox_size          | Width, length and height of the photobox.                                                                                                            | _photobox_size:='[1.0, 1.0, 1.0]'                                 |
-| simulation             | Defines whether the script is run in simulation or not. If _True_ the robot arm will move faster and not wait for the turntable to become available. | _simulation:=False                                                |
-| test                   | The program will run in test mode if set _True_. In test mode the turntable will not spin and no photos are taken.                                   | _test:=False                                                      |
+| Parameter              | Description                                                                                                                                          | Example                           |
+|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------|
+| camera_pos             | Position of the attached object relative to the attachment link.                                                                                     | _camera_pos:='[0.0, 0.0, 0.0]'    |
+| camera_size            | Width, length and height of the attached camera.                                                                                                     | _camera_size:='[0.1, 0.1, 0.1]'   |
+| distance_camera_object | The distance between the camera and the object at all positions.                                                                                     | _distance_camera_object:=0.2      |
+| max_velocity           | The maximum velocity the robot arm is moving at.                                                                                                     | _max_velocity:=0.1                |
+| num_positions          | Number of positions around the object that the robot should move to.                                                                                 | _num_positions:=15                |
+| num_spins              | Number of spins the turntable should do for each position of the robot.                                                                              | _num_spins:=8                     |
+| object_size            | Width, length and height of the object on the turntable.                                                                                             | _object_size:='[0.2, 0.2, 0.2]'   |
+| output_directory       | The directory to store captured photos into.                                                                                                         | _output_directory:='out'          |
+| photobox_pos           | Center position of the photobox ground plane.                                                                                                        | _photobox_pos:='[0.0, -0.7, 0.0]' |
+| photobox_size          | Width, length and height of the photobox.                                                                                                            | _photobox_size:='[1.0, 1.0, 1.0]' |
+| simulation             | Defines whether the script is run in simulation or not. If _True_ the robot arm will move faster and not wait for the turntable to become available. | _simulation:=False                |
+| test                   | The program will run in test mode if set _True_. In test mode the turntable will not spin and no photos are taken.                                   | _test:=False                      |
 
 The easiest way to work with the bot during development is to use the provided launch files.
 

@@ -16,22 +16,19 @@ import tf
 
 def init():
     global move_group, robot, scene, turntable_client
-    global camera_mesh, camera_orientation, camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, simulation, test, turntable_pos
+    global camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, simulation, test, turntable_pos
 
     rospy.init_node('photogrammetry')
 
-    camera_mesh = rospy.get_param('~camera_mesh', None)
-    camera_orientation = rospy.get_param('~camera_orientation', None)
-    camera_pos = rospy.get_param('~camera_pos', [0.0, 0.0, 0.0])
-    camera_size = rospy.get_param('~camera_size', [0.1, 0.1, 0.1])
+    camera_pos = rospy.get_param('~camera_pos', [0.0, -0.02, 0.07])
+    camera_size = rospy.get_param('~camera_size', [0.149, 0.134, 0.2486])
     distance_camera_object = rospy.get_param('~distance_camera_object', 0.2)
     max_velocity = rospy.get_param('~max_velocity', 0.1)
     num_positions = rospy.get_param('~num_positions', 15)
     num_spins = rospy.get_param('~num_spins', 8)
     object_size = numpy.array(rospy.get_param('~object_size', [0.2, 0.2, 0.2]))
-    object_size[:2] = max(object_size[:2])
-    photobox_pos = rospy.get_param('~photobox_pos', [0.0, -0.7, 0.0])
-    photobox_size = rospy.get_param('~photobox_size', [1.0, 1.0, 1.0])
+    photobox_pos = rospy.get_param('~photobox_pos', [0.0, -0.6, 0.0])
+    photobox_size = rospy.get_param('~photobox_size', [1.0, 0.7, 1.0])
     simulation = rospy.get_param('~simulation', False)
     test = rospy.get_param('~test', False)
     turntable_pos = photobox_pos
@@ -83,8 +80,8 @@ def init():
     # add object on turntable
     ps.pose.position.x = turntable_pos[0]
     ps.pose.position.y = turntable_pos[1]
-    ps.pose.position.z = turntable_pos[2] + object_size[2] / 2
-    scene.add_box('object', ps, object_size)
+    ps.pose.position.z = turntable_pos[2] + max(object_size) / 2
+    scene.add_sphere('object', ps, max(object_size) / 2)
 
     # add camera
     eef_link = move_group.get_end_effector_link()
@@ -94,23 +91,11 @@ def init():
     scene.remove_attached_object(eef_link, 'camera')
     scene.remove_world_object('camera')
 
-    if camera_mesh:
-        ps.pose.position.x = camera_pos[0]
-        ps.pose.position.y = camera_pos[1]
-        ps.pose.position.z = camera_pos[2]
+    ps.pose.position.x = camera_pos[0] + camera_size[0] / 2
+    ps.pose.position.y = camera_pos[1]
+    ps.pose.position.z = camera_pos[2]
 
-        quaternion = tf.transformations.quaternion_from_euler(math.radians(camera_orientation[0]), math.radians(camera_orientation[1]), math.radians(camera_orientation[2]))
-        ps.pose.orientation.x = quaternion[0]
-        ps.pose.orientation.y = quaternion[1]
-        ps.pose.orientation.z = quaternion[2]
-        ps.pose.orientation.w = quaternion[3]
-
-        scene.attach_mesh(eef_link, 'camera', ps, os.path.expanduser(camera_mesh), camera_size)
-    else:
-        ps.pose.position.x = camera_pos[0] + camera_size[0] / 2
-        ps.pose.position.y = camera_pos[1]
-        ps.pose.position.z = camera_pos[2]
-        scene.attach_box(eef_link, 'camera', ps, camera_size)
+    scene.attach_box(eef_link, 'camera', ps, camera_size)
 
 def send_turntable_tf(msg, tb):
     try:
@@ -143,14 +128,14 @@ def move_to(position, orientation=None, face=None):
         pose.orientation.w = orientation[3]
     else:
         if face == 'top':
-            angle_y = math.atan2(pose.position.z - turntable_pos[2] - object_size[2], pose.position.y - turntable_pos[1])
+            angle_y = math.atan2(pose.position.z - turntable_pos[2] - max(object_size), pose.position.y - turntable_pos[1] - camera_pos[2])
         elif face == 'bottom':
-            angle_y = math.atan2(pose.position.z - turntable_pos[2], pose.position.y - turntable_pos[1])
+            angle_y = math.atan2(pose.position.z - turntable_pos[2], pose.position.y - turntable_pos[1] - camera_pos[2])
         else: # center
-            angle_y = math.atan2(pose.position.z - turntable_pos[2] - object_size[2] / 2, pose.position.y - turntable_pos[1])
+            angle_y = math.atan2(pose.position.z - turntable_pos[2] - max(object_size) / 2, pose.position.y - turntable_pos[1] - camera_pos[2])
 
-        angle_z = math.atan2(turntable_pos[1] - pose.position.y, turntable_pos[0] - pose.position.x)
-        quaternion = tf.transformations.quaternion_from_euler(0, angle_y, angle_z)
+        angle_z = math.atan2(turntable_pos[1] - pose.position.y, turntable_pos[0] - pose.position.x - camera_pos[1])
+        quaternion = tf.transformations.quaternion_from_euler(0.0, angle_y, angle_z)
         pose.orientation.x = quaternion[0]
         pose.orientation.y = quaternion[1]
         pose.orientation.z = quaternion[2]
@@ -170,17 +155,17 @@ def set_turntable_angle(angle, radians=False):
     return True if simulation else turntable_client.wait_for_result(rospy.Duration(0))
 
 def create_arm_positions(n=15):
-    min_y = turntable_pos[1]
-    max_y = turntable_pos[1] + object_size[1] / 2 + camera_size[1] + distance_camera_object
-    min_z = turntable_pos[2]
-    max_z = turntable_pos[2] + object_size[2] + camera_size[1] + distance_camera_object
+    min_y = turntable_pos[1] + camera_pos[2]
+    max_y = turntable_pos[1] + max(object_size) / 2 + camera_size[0] + camera_pos[0] + distance_camera_object
+    min_z = turntable_pos[2] + camera_size[2] / 2 - camera_pos[2]
+    max_z = turntable_pos[2] + max(object_size) + camera_size[0] + camera_pos[0] + distance_camera_object
 
-    div = object_size[1] / 2 + object_size[2]
+    div = max(object_size) / 2 + max(object_size)
     positions = []
-    for y in numpy.linspace(min_y, max_y, round(n / div * object_size[1] / 2)):
-        positions.append([0.0, y, max_z])
-    for z in numpy.linspace(max_z, min_z, round(n / div * object_size[2]) + 1)[1:]:
-        positions.append([0.0, max_y, z])
+    for y in numpy.linspace(min_y, max_y, round(n / div * max(object_size) / 2)):
+        positions.append([-camera_pos[1], y, max_z])
+    for z in numpy.linspace(max_z, min_z, round(n / div * max(object_size)) + 1)[1:]:
+        positions.append([-camera_pos[1], max_y, z])
 
     return positions
 

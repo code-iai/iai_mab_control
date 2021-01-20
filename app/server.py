@@ -107,7 +107,7 @@ class WebSocketHandler(WebSocket):
                     with open(settings_dir + 'general.json') as f:
                         settings = json.loads(f.read())
 
-                    for param in ['camera_mesh', 'camera_orientation', 'camera_pos', 'camera_size', 'max_velocity', 'photobox_pos', 'photobox_size']:
+                    for param in ['camera_pos', 'camera_size', 'max_velocity', 'photobox_pos', 'photobox_size']:
                         params.append('_{}:={}'.format(param, settings[param]))
 
                     for param in msg:

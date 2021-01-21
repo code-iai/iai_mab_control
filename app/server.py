@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from BaseHTTPServer import HTTPServer
+from pty import openpty
 from re import match
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from simple_websocket_server import WebSocketServer, WebSocket
@@ -114,16 +115,17 @@ class WebSocketHandler(WebSocket):
                         if param.startswith('_'):
                             params.append('{}:={}'.format(param, msg[param]))
 
-                    process_model = subprocess.Popen(['rosrun', 'iai_mab_control', 'acquisition.py'] + params, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    Thread(target=update_process, args=[process_model]).start()
+                    master, slave = openpty()
+                    process_model = subprocess.Popen(['rosrun', 'iai_mab_control', 'acquisition.py'] + params, stdout=slave, stderr=slave)
+                    monitor(process_model, os.fdopen(master), os.fdopen(slave, 'w', 0))
                 elif msg['type'] == 'photogrammetry':
                     if process_photogrammetry is not None:
                         return
 
                     with open(settings_dir + 'general.json') as f:
-                        process_photogrammetry = subprocess.Popen([os.path.expanduser('{}/meshroom_photogrammetry'.format(json.loads(f.read())['meshroom_dir'])), '--input', os.path.expanduser('{}/out/images'.format(msg['workingDir'])), '--output', os.path.expanduser('{}/out/model'.format(msg['workingDir']))], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-                    Thread(target=update_process, args=[process_photogrammetry]).start()
+                        master, slave = openpty()
+                        process_photogrammetry = subprocess.Popen([os.path.expanduser('{}/meshroom_photogrammetry'.format(json.loads(f.read())['meshroom_dir'])), '--input', os.path.expanduser('{}/out/images'.format(msg['workingDir'])), '--output', os.path.expanduser('{}/out/model'.format(msg['workingDir']))], stdout=slave, stderr=slave)
+                        monitor(process_photogrammetry, os.fdopen(master), os.fdopen(slave, 'w', 0))
 
                 broadcast('START', msg['type'])
             elif op == 'STOP':
@@ -150,51 +152,65 @@ def broadcast(op, msg, sender=None):
     for client in clients:
         client._send(op, msg)
 
-def update_process(process):
-    global process_model, process_model_log, process_photogrammetry, process_photogrammetry_log
+def monitor(process, stdout, stdin):
+    def killer():
+        process.wait()
+        stdin.write('\n')
 
-    if process == process_model:
-        while process.poll() is None:
-            stdout = process.stdout.readline()
+    def updater():
+        global process_model, process_photogrammetry
 
-            if len(stdout) == 0:
-                continue
+        if process == process_model:
+            global process_model_progress, process_model_log
 
-            if stdout.startswith('progress:'):
-                process_model_progress = stdout.rstrip().split()[1]
-                broadcast('PROGRESS', { 'type': 'model', 'value': process_model_progress })
-            else:
-                process_model_log += stdout
-                broadcast('CONSOLE', { 'type': 'model', 'text': stdout })
+            while process.poll() is None:
+                line = stdout.readline()
 
-        process_model = None
-        process_model_progress = 0
-        process_model_log = ''
-        broadcast('STOP', 'model')
-    elif process == process_photogrammetry:
-        while process.poll() is None:
-            stdout = process.stdout.readline()
+                if len(line) == 0:
+                    continue
 
-            if len(stdout) == 0:
-                continue
+                if line.startswith('progress:'):
+                    process_model_progress = line.rstrip().split()[1]
+                    broadcast('PROGRESS', { 'type': 'model', 'value': process_model_progress })
+                else:
+                    process_model_log += line
+                    broadcast('CONSOLE', { 'type': 'model', 'text': line })
 
-            if match('\[\d+/\d+\] *', stdout):
-                process_photogrammetry_step = int(stdout[1:stdout.index('/')])
-                process_photogrammetry_step_max = float(stdout[stdout.index('/') + 1:stdout.index(']')])
-                process_photogrammetry_progress = str(int(process_photogrammetry_step - 1 / process_photogrammetry_step_max * 100))
-                broadcast('PROGRESS', { 'type': 'photogrammetry', 'value': process_photogrammetry_progress })
-            elif stdout.startswith(' - elapsed time: '):
-                if process_photogrammetry_step is not None and process_photogrammetry_step_max is not None:
-                    process_photogrammetry_progress = str(int(process_photogrammetry_step / process_photogrammetry_step_max * 100))
+            process_model = None
+            process_model_progress = 0
+            process_model_log = ''
+            broadcast('STOP', 'model')
+        elif process == process_photogrammetry:
+            global process_photogrammetry_progress, process_photogrammetry_log, process_photogrammetry_step, process_photogrammetry_step_max
+
+            while process.poll() is None:
+                line = stdout.readline()
+
+                if len(line) == 0:
+                    continue
+
+                if match('\[\d+/\d+\] *', line):
+                    process_photogrammetry_step = int(line[1:line.index('/')])
+                    process_photogrammetry_step_max = float(line[line.index('/') + 1:line.index(']')])
+                    process_photogrammetry_progress = str(int((process_photogrammetry_step - 1) / process_photogrammetry_step_max * 100))
                     broadcast('PROGRESS', { 'type': 'photogrammetry', 'value': process_photogrammetry_progress })
-            else:
-                process_photogrammetry_log += stdout
-                broadcast('CONSOLE', { 'type': 'photogrammetry', 'text': stdout })
+                elif line.startswith(' - elapsed time: '):
+                    if process_photogrammetry_step is not None and process_photogrammetry_step_max is not None:
+                        process_photogrammetry_progress = str(int(process_photogrammetry_step / process_photogrammetry_step_max * 100))
+                        broadcast('PROGRESS', { 'type': 'photogrammetry', 'value': process_photogrammetry_progress })
 
-        process_photogrammetry = None
-        process_photogrammetry_progress = 0
-        process_photogrammetry_log = ''
-        broadcast('STOP', 'photogrammetry')
+                process_photogrammetry_log += line
+                broadcast('CONSOLE', { 'type': 'photogrammetry', 'text': line })
+
+            process_photogrammetry = None
+            process_photogrammetry_progress = 0
+            process_photogrammetry_log = ''
+            process_photogrammetry_step = None
+            process_photogrammetry_step_max = None
+            broadcast('STOP', 'photogrammetry')
+
+    Thread(target=killer).start()
+    Thread(target=updater).start()
 
 http_thread = Thread(target=lambda : MyHTTPServer(8000).serve_forever()) # TODO add optional parameter to set port
 http_thread.daemon = True

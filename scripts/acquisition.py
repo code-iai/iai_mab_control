@@ -171,7 +171,6 @@ def create_arm_positions(n=15):
 
 if __name__ == '__main__':
     print('progress: 0')
-    sys.stdout.flush()
 
     init()
 
@@ -186,7 +185,6 @@ if __name__ == '__main__':
                         if camera.capture() is None:
                             pass # TODO: handle capture failure
         print('progress: {}'.format(int(float(positions.index(position) + 1) / len(positions) * 100)))
-        sys.stdout.flush()
         rospy.sleep(1)
     camera.exit()
     move_home()

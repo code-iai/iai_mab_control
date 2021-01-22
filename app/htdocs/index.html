@@ -54,15 +54,15 @@
 							</div>
 							<hr>
 							<div class="form-floating mb-3">
-								<input type="text" class="form-control" id="cameraDistance" placeholder="Camera distance to object">
-								<label for="cameraDistance">Camera distance to object</label>
+								<input type="text" class="form-control" id="cameraDistance" placeholder="Camera distance to object in meters">
+								<label for="cameraDistance">Camera distance to object in meters</label>
 							</div>
 							<div class="form-floating mb-3">
-								<input type="number" class="form-control" id="numPositions" placeholder="Number of robot positions">
+								<input type="number" min="1" class="form-control" id="numPositions" placeholder="Number of robot positions">
 								<label for="numPositions">Number of robot positions</label>
 							</div>
 							<div class="form-floating">
-								<input type="number" class="form-control" id="numSpins" placeholder="Number of turntable spins">
+								<input type="number" min="1" class="form-control" id="numSpins" placeholder="Number of turntable spins">
 								<label for="numSpins">Number of turntable spins</label>
 							</div>
 							<hr>
@@ -84,16 +84,16 @@
 								<label for="workingDirModel">Working directory</label>
 							</div>
 							<div class="form-floating mb-3">
-								<input type="text" class="form-control" id="objectWidth" placeholder="Object width">
-								<label for="objectWidth">Object width</label>
+								<input type="text" class="form-control" id="objectWidth" placeholder="Object width in meters">
+								<label for="objectWidth">Object width in meters</label>
 							</div>
 							<div class="form-floating mb-3">
-								<input type="text" class="form-control" id="objectLength" placeholder="Object length">
-								<label for="objectLength">Object length</label>
+								<input type="text" class="form-control" id="objectLength" placeholder="Object length in meters">
+								<label for="objectLength">Object length in meters</label>
 							</div>
 							<div class="form-floating mb-3">
-								<input type="text" class="form-control" id="objectHeight" placeholder="Object height">
-								<label for="objectHeight">Object height</label>
+								<input type="text" class="form-control" id="objectHeight" placeholder="Object height in meters">
+								<label for="objectHeight">Object height in meters</label>
 							</div>
 							<div class="form-check mb-3">
 								<input type="checkbox" class="form-check-input" id="simulation">
@@ -123,10 +123,6 @@
 								</div>
 							</div>
 							<hr>
-							<div class="form-floating mb-3">
-								<input type="number" class="form-control" id="maxNumTriangles" placeholder="Maximum number of triangles">
-								<label for="maxNumTriangles">Maximum number of triangles</label>
-							</div>
 							<div class="form-floating">
 								<input type="number" class="form-control" id="maxNumVertices" placeholder="Maximum number of vertices">
 								<label for="maxNumVertices">Maximum number of vertices</label>
@@ -148,22 +144,6 @@
 							<div class="form-floating mb-3">
 								<input type="text" class="form-control" id="workingDirPhotogrammetry" placeholder="Working directory" value="~">
 								<label for="workingDirPhotogrammetry">Working directory</label>
-							</div>
-							<div class="form-floating mb-3">
-								<input type="text" class="form-control" id="fileName" placeholder="File name" value="model">
-								<label for="fileName">File name</label>
-							</div>
-							<div class="mb-3">
-								<span class="me-3">Formats:</span><div class="form-check form-check-inline">
-									<input type="checkbox" class="form-check-input" id="formatFBX">
-									<label class="form-check-label" for="formatFBX">FBX</label>
-								</div><div class="form-check form-check-inline">
-									<input type="checkbox" class="form-check-input" id="formatSTL">
-									<label class="form-check-label" for="formatSTL">STL</label>
-								</div><div class="form-check form-check-inline">
-									<input type="checkbox" class="form-check-input" id="formatDAE">
-									<label class="form-check-label" for="formatDAE">DAE</label>
-								</div>
 							</div>
 							<button class="btn btn-primary" id="startPhotogrammetry">Start</button>
 						</div>
@@ -340,7 +320,7 @@
 				const name = document.querySelector('#name' + (type == 'model' ? 'Model' : 'Photogrammetry')).value;
 				const params = {};
 
-				(type == 'model' ? ['cameraDistance', 'numPositions', 'numSpins'] : ['maxNumTriangles', 'maxNumVertices']).forEach(function(param) {
+				(type == 'model' ? ['cameraDistance', 'numPositions', 'numSpins'] : ['maxNumVertices']).forEach(function(param) {
 					params[param] = document.querySelector('#' + param).value;
 				});
 
@@ -354,22 +334,22 @@
 			btn.addEventListener('click', function() {
 				const cameraDistance = document.querySelector('#cameraDistance').value;
 
-				if (!cameraDistance.length) {
-					modal('Error', 'Please enter the camera distance to object.', 'Close');
+				if (!cameraDistance.length || !/^\d+(\.\d+)?$/.test(cameraDistance)) {
+					modal('Error', '<p>Please enter the camera distance to object in meters.</p><p><i>Example: 0.2</i></p>', 'Close');
 					return;
 				}
 
 				const numPositions = document.querySelector('#numPositions').value;
 
-				if (!numPositions.length) {
-					modal('Error', 'Please enter the number of robot positions.', 'Close');
+				if (!numPositions.length || !/^[1-9]\d*$/.test(numPositions)) {
+					modal('Error', '<p>Please enter the number of robot positions.</p><p><i>Example: 15</i></p>', 'Close');
 					return;
 				}
 
 				const numSpins = document.querySelector('#numSpins').value;
 
-				if (!numSpins.length) {
-					modal('Error', 'Please enter the number of turntable spins.', 'Close');
+				if (!numSpins.length || !/^[1-9]\d*$/.test(numSpins)) {
+					modal('Error', '<p>Please enter the number of turntable spins.</p><i>Example: 8</i></p>', 'Close');
 					return;
 				}
 
@@ -382,62 +362,47 @@
 
 				const objectWidth = document.querySelector('#objectWidth').value;
 
-				if (!objectWidth.length) {
-					modal('Error', 'Please enter the object width.', 'Close');
+				if (!objectWidth.length || !/^\d+(\.\d+)?$/.test(objectWidth)) {
+					modal('Error', '<p>Please enter the object width in meters.</p><p><i>Example: 0.2</i></p>', 'Close');
 					return;
 				}
 
 				const objectLength = document.querySelector('#objectLength').value;
 
-				if (!objectLength.length) {
-					modal('Error', 'Please enter the object length.', 'Close');
+				if (!objectLength.length || !/^\d+(\.\d+)?$/.test(objectWidth)) {
+					modal('Error', '<p>Please enter the object length in meters.</p><p><i>Example: 0.2</i></p>', 'Close');
 					return;
 				}
 
 				const objectHeight = document.querySelector('#objectHeight').value;
 
-				if (!objectHeight.length) {
-					modal('Error', 'Please enter the object height.', 'Close');
+				if (!objectHeight.length || !/^\d+(\.\d+)?$/.test(objectWidth)) {
+					modal('Error', '<p>Please enter the object height in meters.</p><p><i>Example: 0.2</i></p>', 'Close');
 					return;
 				}
-
-				// TODO validate settings (using regex)
 
 				send('START', { type: 'model', workingDir: workingDir, '_distance_camera_object': cameraDistance, '_num_positions': numPositions, '_num_spins': numSpins, '_object_size': '[' + objectWidth + ', ' + objectLength + ', ' + objectHeight + ']', '_simulation': document.querySelector('#simulation').checked, '_test': this.id == 'test' });
 			});
 		});
 
 		settingsPhotogrammetry.querySelector('#startPhotogrammetry').addEventListener('click', function() {
-			const maxNumTriangles = document.querySelector('#maxNumTriangles').value;
-
-			if (!maxNumTriangles.length) {
-				modal('Error', 'Please enter the maximum number of triangles.', 'Close');
-				return;
-			}
-
 			const maxNumVertices = document.querySelector('#maxNumVertices').value;
 
-			if (!maxNumVertices.length) {
-				modal('Error', 'Please enter the maximum number of vertices.', 'Close');
+			if (!maxNumVertices.length || !/^[1-9]\d*$/.test(maxNumVertices)) {
+				modal('Error', '<p>Please enter the maximum number of vertices.</p><p><i>Example: 15000</i></p>', 'Close');
 				return;
 			}
 
-			const workingDir = document.querySelector('#workingDirModel').value;
+			const workingDir = document.querySelector('#workingDirPhotogrammetry').value;
 
 			if (!workingDir.length) {
 				modal('Error', 'Please enter the working directory.', 'Close');
 				return;
 			}
 
-			const formatFBX = document.querySelector('#formatFBX').checked;
-			const formatSTL = document.querySelector('#formatSTL').checked;
-			const formatDAE = document.querySelector('#formatDAE').checked;
-
-			// TODO validate settings (using regex)
-
 			settingsPhotogrammetry.classList.add('d-none');
 			processPhotogrammetry.classList.remove('d-none');
-			send('START', { type: 'photogrammetry', workingDir: workingDir, maxNumberTriangles: maxNumTriangles, maxNumberVertices: maxNumVertices, exportFBX: document.querySelector('#formatFBX').checked, exportSTL: document.querySelector('#formatSTL').checked, exportDAE: document.querySelector('#formatDAE').checked });
+			send('START', { type: 'photogrammetry', workingDir: workingDir, maxNumberVertices: maxNumVertices });
 		});
 
 		document.querySelectorAll('[data-close]').forEach(function(btn) {

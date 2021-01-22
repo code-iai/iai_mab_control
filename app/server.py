@@ -122,10 +122,20 @@ class WebSocketHandler(WebSocket):
                     if process_photogrammetry is not None:
                         return
 
+                    master, slave = openpty()
+
                     with open(settings_dir + 'general.json') as f:
-                        master, slave = openpty()
-                        process_photogrammetry = subprocess.Popen([os.path.expanduser('{}/meshroom_photogrammetry'.format(json.loads(f.read())['meshroom_dir'])), '--input', os.path.expanduser('{}/out/images'.format(msg['workingDir'])), '--output', os.path.expanduser('{}/out/model'.format(msg['workingDir']))], stdout=slave, stderr=slave)
-                        monitor(process_photogrammetry, os.fdopen(master), os.fdopen(slave, 'w', 0))
+                        process_photogrammetry = subprocess.Popen([
+                            os.path.expanduser('{}/meshroom_photogrammetry'.format(json.loads(f.read())['meshroom_dir'])),
+                            '--input', os.path.expanduser('{}/out/images'.format(msg['workingDir'])),
+                            '--output', os.path.expanduser('{}/out/model'.format(msg['workingDir'])),
+                            # '--pipeline', settings_dir + 'pipeline.mg',
+                            '--paramOverrides',
+                            'MeshDecimate:maxVertices={}'.format(msg['maxNumberVertices']),
+                            'MeshResampling:maxVertices={}'.format(msg['maxNumberVertices'])
+                        ], stdout=slave, stderr=slave)
+
+                    monitor(process_photogrammetry, os.fdopen(master), os.fdopen(slave, 'w', 0))
 
                 broadcast('START', msg['type'])
             elif op == 'STOP':
@@ -202,6 +212,7 @@ def monitor(process, stdout, stdin):
                 process_photogrammetry_log += line
                 broadcast('CONSOLE', { 'type': 'photogrammetry', 'text': line })
 
+            # TODO convert to file formats: fbx, stl, dae
             process_photogrammetry = None
             process_photogrammetry_progress = 0
             process_photogrammetry_log = ''

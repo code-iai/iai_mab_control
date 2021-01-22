@@ -136,4 +136,11 @@ $ roscd iai_mab_control
 $ app/server.py
 ```
 
-After starting the server any web browser can be used to access the GUI by browsing to [http://MACHINE_IP_ADDRESS:8000](http://MACHINE_IP_ADDRESS:8000) where _MACHINE_IP_ADDRESS_ is the ip address of the machine the server is running on. To access the GUI on the same machine as the server is running on, you can visit http://127.0.0.1:8000.
+After starting the server any web browser can be used to access the GUI by browsing to http://MACHINE_IP_ADDRESS:8000 where _MACHINE_IP_ADDRESS_ is the ip address of the machine the server is running on. To access the GUI on the same machine as the server is running on, you can visit http://127.0.0.1:8000.
+
+While the default ports for HTTP and WebSocket are set to 8000 and 8080, the optional arguments _--http_port_ and _--socket_port_ can be passed to change them.
+
+```
+$ roscd iai_mab_control
+$ app/server.py --http_port 9000 --socket_port 9090
+```

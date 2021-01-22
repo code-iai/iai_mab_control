@@ -182,7 +182,7 @@
 			<a target="_blank" href="https://github.com/code-iai/iai_mab_control"><i class="fab fa-github fa-2x fa-fw"></i></a>
 		</footer>
 		<script src="/assets/js/bootstrap.bundle.min.js"></script>
-		<!-- TODO create script for modals -->
+		<script src="/assets/js/modal.js"></script>
 		<script>
 		const connect = document.querySelector('#connect');
 		const authenticate = document.querySelector('#authenticate');
@@ -235,10 +235,10 @@
 
 			connection.onclose = function(e) {
 				if (connect.classList.contains('d-none')) {
-					alert('Connection lost. Reload to continue.');
+					modal('Error', 'Connection lost. Reload to continue.', 'Close');
 				} else {
 					spinner.add('d-none');
-					alert('Failed to connect.');
+					modal('Error', 'Failed to connect.', 'Close');
 				}
 			};
 
@@ -255,7 +255,7 @@
 							authenticate.classList.add('d-none');
 							document.querySelector('#app').classList.remove('d-none');
 						} else {
-							alert('Wrong password.');
+							modal('Error', 'Wrong password.', 'Close');
 						}
 
 						break;
@@ -355,49 +355,49 @@
 				const cameraDistance = document.querySelector('#cameraDistance').value;
 
 				if (!cameraDistance.length) {
-					alert('Please enter the camera distance to object.');
+					modal('Error', 'Please enter the camera distance to object.', 'Close');
 					return;
 				}
 
 				const numPositions = document.querySelector('#numPositions').value;
 
 				if (!numPositions.length) {
-					alert('Please enter the number of positions.');
+					modal('Error', 'Please enter the number of robot positions.', 'Close');
 					return;
 				}
 
 				const numSpins = document.querySelector('#numSpins').value;
 
 				if (!numSpins.length) {
-					alert('Please enter the number of spins.');
+					modal('Error', 'Please enter the number of turntable spins.', 'Close');
 					return;
 				}
 
 				const workingDir = document.querySelector('#workingDirModel').value;
 
 				if (!workingDir.length) {
-					alert('Please enter the working directory.');
+					modal('Error', 'Please enter the working directory.', 'Close');
 					return;
 				}
 
 				const objectWidth = document.querySelector('#objectWidth').value;
 
 				if (!objectWidth.length) {
-					alert('Please enter the object width.');
+					modal('Error', 'Please enter the object width.', 'Close');
 					return;
 				}
 
 				const objectLength = document.querySelector('#objectLength').value;
 
 				if (!objectLength.length) {
-					alert('Please enter the object length.');
+					modal('Error', 'Please enter the object length.', 'Close');
 					return;
 				}
 
 				const objectHeight = document.querySelector('#objectHeight').value;
 
 				if (!objectHeight.length) {
-					alert('Please enter the object height.');
+					modal('Error', 'Please enter the object height.', 'Close');
 					return;
 				}
 
@@ -411,21 +411,21 @@
 			const maxNumTriangles = document.querySelector('#maxNumTriangles').value;
 
 			if (!maxNumTriangles.length) {
-				alert('Please enter the maximum number of triangles.');
+				modal('Error', 'Please enter the maximum number of triangles.', 'Close');
 				return;
 			}
 
 			const maxNumVertices = document.querySelector('#maxNumVertices').value;
 
 			if (!maxNumVertices.length) {
-				alert('Please enter the maximum number of vertices.');
+				modal('Error', 'Please enter the maximum number of vertices.', 'Close');
 				return;
 			}
 
 			const workingDir = document.querySelector('#workingDirModel').value;
 
 			if (!workingDir.length) {
-				alert('Please enter the working directory.');
+				modal('Error', 'Please enter the working directory.', 'Close');
 				return;
 			}
 

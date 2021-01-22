@@ -106,6 +106,20 @@
 							<div class="progress mb-3" style="height: 40px;">
 								<div class="progress-bar progress-bar-striped progress-bar-animated px-2 lead"></div>
 							</div>
+							<div class="accordion mb-3" id="modelAccordion">
+								<div class="accordion-item">
+									<h2 class="accordion-header">
+										<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#livePreview">
+											Live preview
+										</button>
+									</h2>
+									<div id="livePreview" class="accordion-collapse collapse show" data-bs-parent="#modelAccordion">
+										<div class="accordion-body">
+											<img class="mw-100">
+										</div>
+									</div>
+								</div>
+							</div>
 							<button class="btn btn-primary" data-close="model">Close</button><button class="btn btn-danger" data-stop="model">Stop</button>
 						</div>
 					</div>
@@ -247,6 +261,11 @@
 						container.classList.remove('d-none');
 						container.querySelector('textarea').value = '';
 						updateProgressBar(msg, 0);
+
+						if (msg == 'model') {
+							document.querySelector('#livePreview img').src = '';
+						}
+
 						container.querySelector('[data-close]').classList.add('d-none');
 						container.querySelector('[data-stop]').classList.remove('d-none');
 						break;
@@ -272,6 +291,13 @@
 						if (scroll) {
 							console.scrollTop = console.scrollHeight;
 						}
+
+						break;
+					}
+
+					case 'PREVIEW': {
+						document.querySelector('#livePreview img').src = 'data:image/jpeg;base64,' + msg.data;
+						break;
 					}
 				}
 			};

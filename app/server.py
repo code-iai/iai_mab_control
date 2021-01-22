@@ -7,6 +7,7 @@ from SimpleHTTPServer import SimpleHTTPRequestHandler
 from simple_websocket_server import WebSocketServer, WebSocket
 from threading import Thread
 
+import base64
 import json
 import os
 import subprocess
@@ -71,6 +72,9 @@ class WebSocketHandler(WebSocket):
                         self._send('START', 'model')
                         self._send('PROGRESS', { 'type': 'model', 'value': process_model_progress })
                         self._send('CONSOLE', { 'type': 'model', 'text': process_model_log })
+
+                        if process_model_preview is not None:
+                            self._send('PREVIEW', { 'data': process_model_preview })
 
                     if process_photogrammetry is not None:
                         self._send('START', 'photogrammetry')
@@ -151,6 +155,7 @@ clients = []
 process_model = None
 process_model_progress = 0
 process_model_log = ''
+process_model_preview = None
 
 process_photogrammetry = None
 process_photogrammetry_progress = 0
@@ -171,7 +176,7 @@ def monitor(process, stdout, stdin):
         global process_model, process_photogrammetry
 
         if process == process_model:
-            global process_model_progress, process_model_log
+            global process_model_progress, process_model_log, process_model_preview
 
             while process.poll() is None:
                 line = stdout.readline()
@@ -182,6 +187,11 @@ def monitor(process, stdout, stdin):
                 if line.startswith('progress:'):
                     process_model_progress = line.rstrip().split()[1]
                     broadcast('PROGRESS', { 'type': 'model', 'value': process_model_progress })
+                elif line.startswith('preview:'):
+                    with open(line.rstrip().split()[1], 'rb') as f:
+                        process_model_preview = base64.b64encode(f.read()).decode('utf-8')
+
+                    broadcast('PREVIEW', { 'data': process_model_preview })
                 else:
                     process_model_log += line
                     broadcast('CONSOLE', { 'type': 'model', 'text': line })
@@ -189,6 +199,7 @@ def monitor(process, stdout, stdin):
             process_model = None
             process_model_progress = 0
             process_model_log = ''
+            process_model_preview = None
             broadcast('STOP', 'model')
         elif process == process_photogrammetry:
             global process_photogrammetry_progress, process_photogrammetry_log, process_photogrammetry_step, process_photogrammetry_step_max

@@ -8,9 +8,11 @@ from simple_websocket_server import WebSocketServer, WebSocket
 from threading import Thread
 
 import base64
+import getopt
 import json
 import os
 import subprocess
+import sys
 import time
 
 class HTTPHandler(SimpleHTTPRequestHandler):
@@ -234,13 +236,25 @@ def monitor(process, stdout, stdin):
     Thread(target=killer).start()
     Thread(target=updater).start()
 
-http_thread = Thread(target=lambda : MyHTTPServer(8000).serve_forever()) # TODO add optional parameter to set port
+http_port = 8000
+socket_port = 8080
+opts, args = getopt.getopt(sys.argv[1:], '', ['http_port=', 'socket_port='])
+
+for opt, arg in opts:
+    if opt == '--http_port':
+        http_port = int(arg)
+    elif opt == '--socket_port':
+        socket_port = int(arg)
+
+http_thread = Thread(target=lambda : MyHTTPServer(http_port).serve_forever()) # TODO add optional parameter to set port
 http_thread.daemon = True
 http_thread.start()
+print('HTTP listening on {}'.format(http_port))
 
-socket_thread = Thread(target=lambda : WebSocketServer('', 8080, WebSocketHandler).serve_forever()) # TODO add optional parameter to set port
+socket_thread = Thread(target=lambda : WebSocketServer('', socket_port, WebSocketHandler).serve_forever()) # TODO add optional parameter to set port
 socket_thread.daemon = True
 socket_thread.start()
+print('WebSocket listening on {}'.format(socket_port))
 
 while True:
     time.sleep(1)

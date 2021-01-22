@@ -41,6 +41,18 @@
 				<div class="tab-content">
 					<div class="tab-pane fade show active" id="model">
 						<div id="settingsModel">
+							<div class="row g-3">
+								<div class="col">
+									<div class="form-floating">
+										<select class="form-select" id="savedSettingsModel"></select>
+										<label for="savedSettingsModel">Saved settings</label>
+									</div>
+								</div>
+								<div class="col-auto">
+									<button type="button" class="btn btn-primary h-100 me-3" data-settings="model" data-action="load">Load</button><button type="button" class="btn btn-danger h-100" data-settings="model" data-action="delete">Delete</button>
+								</div>
+							</div>
+							<hr>
 							<div class="form-floating mb-3">
 								<input type="text" class="form-control" id="cameraDistance" placeholder="Camera distance to object">
 								<label for="cameraDistance">Camera distance to object</label>
@@ -54,17 +66,6 @@
 								<label for="numSpins">Number of turntable spins</label>
 							</div>
 							<hr>
-							<div class="row g-3 mb-3">
-								<div class="col">
-									<div class="form-floating">
-										<select class="form-select" id="savedSettingsModel"></select>
-										<label for="savedSettingsModel">Saved settings</label>
-									</div>
-								</div>
-								<div class="col-auto">
-									<button type="button" class="btn btn-primary h-100 me-3" data-settings="model" data-action="load">Load</button><button type="button" class="btn btn-danger h-100" data-settings="model" data-action="delete">Delete</button>
-								</div>
-							</div>
 							<form class="mb-5" data-save="model">
 								<div class="row g-3">
 									<div class="col">
@@ -110,16 +111,7 @@
 					</div>
 					<div class="tab-pane fade" id="photogrammetry">
 						<div id="settingsPhotogrammetry">
-							<div class="form-floating mb-3">
-								<input type="number" class="form-control" id="maxNumTriangles" placeholder="Maximum number of triangles">
-								<label for="maxNumTriangles">Maximum number of triangles</label>
-							</div>
-							<div class="form-floating">
-								<input type="number" class="form-control" id="maxNumVertices" placeholder="Maximum number of vertices">
-								<label for="maxNumVertices">Maximum number of vertices</label>
-							</div>
-							<hr>
-							<div class="row g-3 mb-3">
+							<div class="row g-3">
 								<div class="col">
 									<div class="form-floating">
 										<select class="form-select" id="savedSettingsPhotogrammetry"></select>
@@ -130,6 +122,16 @@
 									<button type="button" class="btn btn-primary h-100 me-3" data-settings="photogrammetry" data-action="load">Load</button><button type="button" class="btn btn-danger h-100" data-settings="photogrammetry" data-action="delete">Delete</button>
 								</div>
 							</div>
+							<hr>
+							<div class="form-floating mb-3">
+								<input type="number" class="form-control" id="maxNumTriangles" placeholder="Maximum number of triangles">
+								<label for="maxNumTriangles">Maximum number of triangles</label>
+							</div>
+							<div class="form-floating">
+								<input type="number" class="form-control" id="maxNumVertices" placeholder="Maximum number of vertices">
+								<label for="maxNumVertices">Maximum number of vertices</label>
+							</div>
+							<hr>
 							<form class="mb-5" data-save="photogrammetry">
 								<div class="row g-3">
 									<div class="col">

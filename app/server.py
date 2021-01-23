@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from BaseHTTPServer import HTTPServer
-from pty import openpty
 from re import match
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from simple_websocket_server import WebSocketServer, WebSocket
@@ -14,6 +13,9 @@ import os
 import subprocess
 import sys
 import time
+
+if os.name == 'posix':
+    from pty import openpty
 
 class HTTPHandler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
@@ -121,27 +123,57 @@ class WebSocketHandler(WebSocket):
                         if param.startswith('_'):
                             params.append('{}:={}'.format(param, msg[param]))
 
-                    master, slave = openpty()
-                    process_model = subprocess.Popen(['rosrun', 'iai_mab_control', 'acquisition.py'] + params, stdout=slave, stderr=slave)
+                    if os.name == 'posix':
+                        master, slave = openpty()
+                        stdout, stderr = slave, slave
+                        env = None
+                    else:
+                        master, slave = None, None
+                        stdout, stderr = subprocess.PIPE, subprocess.STDOUT
+                        env = dict(os.environ, **dict(PYTHONUNBUFFERED='1'))
+
+                    process_model = subprocess.Popen(['rosrun', 'iai_mab_control', 'acquisition.py'] + params, stdout=slave, stderr=slave, env=env)
                     monitor(process_model, os.fdopen(master), os.fdopen(slave, 'w', 0))
                 elif msg['type'] == 'photogrammetry':
                     if process_photogrammetry is not None:
                         return
 
-                    master, slave = openpty()
+                    if os.name == 'posix':
+                        master, slave = openpty()
+                        stdout, stderr = slave, slave
+                        env = None
+                    else:
+                        master, slave = None, None
+                        stdout, stderr = subprocess.PIPE, subprocess.STDOUT
+                        env = dict(os.environ, **dict(PYTHONUNBUFFERED='1'))
 
                     with open(settings_dir + 'general.json') as f:
+                        settings = json.loads(f.read())
+
+                        with open(settings_dir + 'meshroom/pipeline.mg') as f_pipeline:
+                            pipeline = json.loads(f_pipeline.read())
+                        with open(settings_dir + 'meshroom/pipeline.mg', 'w') as f_pipeline:
+                            pipeline['graph']['CameraInit_1']['inputs']['sensorDatabase'] = settings['meshroom_dir'] + '/aliceVision/share/aliceVision/cameraSensors.db'
+                            pipeline['graph']['ImageMatching_1']['inputs']['tree'] = settings['meshroom_dir'] + '/aliceVision/share/aliceVision/vlfeat_K80L3.SIFT.tree'
+                            f_pipeline.write(json.dumps(pipeline))
+
+                        with open(settings_dir + 'meshroom/overrides.json', 'w+') as f_overrides:
+                            overrides = {
+                                'MeshDecimate_1': {
+                                    'maxVertices': msg['maxNumberVertices']
+                                }
+                            }
+                            f_overrides.write(json.dumps(overrides))
+
                         process_photogrammetry = subprocess.Popen([
-                            os.path.expanduser('{}/meshroom_photogrammetry'.format(json.loads(f.read())['meshroom_dir'])),
+                            os.path.expanduser('{}/meshroom_photogrammetry'.format(settings['meshroom_dir'])),
                             '--input', os.path.expanduser('{}/out/images'.format(msg['workingDir'])),
                             '--output', os.path.expanduser('{}/out/model'.format(msg['workingDir'])),
-                            # '--pipeline', settings_dir + 'pipeline.mg',
-                            '--paramOverrides',
-                            'MeshDecimate:maxVertices={}'.format(msg['maxNumberVertices']),
-                            'MeshResampling:maxVertices={}'.format(msg['maxNumberVertices'])
-                        ], stdout=slave, stderr=slave)
+                            '--pipeline', settings_dir + 'meshroom/pipeline.mg',
+                            '--overrides', settings_dir + 'meshroom/overrides.json'
+                        ], stdout=stdout, stderr=stderr, env=env)
 
-                    monitor(process_photogrammetry, os.fdopen(master), os.fdopen(slave, 'w', 0))
+                    monitor(process_photogrammetry, master, slave)
 
                 broadcast('START', msg['type'])
             elif op == 'STOP':
@@ -169,10 +201,10 @@ def broadcast(op, msg, sender=None):
     for client in clients:
         client._send(op, msg)
 
-def monitor(process, stdout, stdin):
+def monitor(process, master, slave):
     def killer():
         process.wait()
-        stdin.write('\n')
+        slave.write('\n')
 
     def updater():
         global process_model, process_photogrammetry
@@ -181,7 +213,7 @@ def monitor(process, stdout, stdin):
             global process_model_progress, process_model_log, process_model_preview
 
             while process.poll() is None:
-                line = stdout.readline()
+                line = master.readline()
 
                 if len(line) == 0:
                     continue
@@ -207,7 +239,7 @@ def monitor(process, stdout, stdin):
             global process_photogrammetry_progress, process_photogrammetry_log, process_photogrammetry_step, process_photogrammetry_step_max
 
             while process.poll() is None:
-                line = stdout.readline()
+                line = master.readline()
 
                 if len(line) == 0:
                     continue
@@ -233,7 +265,13 @@ def monitor(process, stdout, stdin):
             process_photogrammetry_step_max = None
             broadcast('STOP', 'photogrammetry')
 
-    Thread(target=killer).start()
+    if os.name == 'posix':
+        master = os.fdopen(master)
+        slave = os.fdopen(slave, 'w', 0)
+        Thread(target=killer).start()
+    else:
+        master = process.stdout
+
     Thread(target=updater).start()
 
 http_port = 8000

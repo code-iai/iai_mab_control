@@ -12,13 +12,7 @@
 	<body>
 		<main class="min-vh-100 container py-3">
 			<section id="connect">
-				<form>
-					<div class="form-floating mb-3">
-						<input type="number" min="1" max="65535" class="form-control" id="port" placeholder="WebSocket port" value="8080" required>
-						<label for="port">WebSocket port</label>
-					</div>
-					<button type="submit" class="btn btn-primary"><i class="fas fa-spinner fa-spin me-2 d-none"></i>Connect</button>
-				</form>
+				<i class="fas fa-spinner fa-spin me-2"></i>Connecting
 			</section>
 			<section class="d-none" id="authenticate">
 				<form>
@@ -211,97 +205,99 @@
 			bar.innerText = progress + '%';
 		}
 
-		connect.querySelector('form').addEventListener('submit', function(e) {
-			e.preventDefault();
-			const spinner = this.querySelector('.fa-spinner').classList;
+		const xhr = new XMLHttpRequest();
+		xhr.open('POST', '/port', true);
 
-			if (!spinner.contains('d-none')) {
-				return;
-			}
+		xhr.onreadystatechange = function() {
+			if (this.readyState == XMLHttpRequest.DONE) {
+				if (this.status == 200) {
+					connection = new WebSocket('ws://' + location.hostname + ':' + xhr.responseText);
 
-			spinner.remove('d-none');
-			connection = new WebSocket('ws://' + location.hostname + ':' + this.querySelector('#port').value);
+					connection.onopen = function() {
+						connect.classList.add('d-none');
+						authenticate.classList.remove('d-none');
+					}
 
-			connection.onopen = function() {
-				connect.classList.add('d-none');
-				authenticate.classList.remove('d-none');
-			}
-
-			connection.onclose = function(e) {
-				if (connect.classList.contains('d-none')) {
-					modal('Error', 'Connection lost. Reload to continue.', 'Close');
-				} else {
-					spinner.add('d-none');
-					modal('Error', 'Failed to connect.', 'Close');
-				}
-			};
-
-			connection.onmessage = function(e) {
-				const data = JSON.parse(e.data);
-				const msg = data.msg;
-
-				switch (data.op) {
-					case 'AUTH_RESPONSE': {
-						if (msg) {
-							settings = msg;
-							updateSettings('model');
-							updateSettings('photogrammetry');
-							authenticate.classList.add('d-none');
-							document.querySelector('#app').classList.remove('d-none');
+					connection.onclose = function(e) {
+						if (connect.classList.contains('d-none')) {
+							modal('Error', 'Connection lost. Reload to continue.', 'Close');
 						} else {
-							modal('Error', 'Wrong password.', 'Close');
+							modal('Error', 'Failed to connect. Reload to try again.', 'Close');
 						}
+					};
 
-						break;
-					}
+					connection.onmessage = function(e) {
+						const data = JSON.parse(e.data);
+						const msg = data.msg;
 
-					case 'START': {
-						(msg == 'model' ? settingsModel : settingsPhotogrammetry).classList.add('d-none');
-						const container = (msg == 'model' ? processModel : processPhotogrammetry);
-						container.classList.remove('d-none');
-						container.querySelector('textarea').value = '';
-						updateProgressBar(msg, 0);
+						switch (data.op) {
+							case 'AUTH_RESPONSE': {
+								if (msg) {
+									settings = msg;
+									updateSettings('model');
+									updateSettings('photogrammetry');
+									authenticate.classList.add('d-none');
+									document.querySelector('#app').classList.remove('d-none');
+								} else {
+									modal('Error', 'Wrong password.', 'Close');
+								}
 
-						if (msg == 'model') {
-							document.querySelector('#livePreview img').src = '';
+								break;
+							}
+
+							case 'START': {
+								(msg == 'model' ? settingsModel : settingsPhotogrammetry).classList.add('d-none');
+								const container = (msg == 'model' ? processModel : processPhotogrammetry);
+								container.classList.remove('d-none');
+								container.querySelector('textarea').value = '';
+								updateProgressBar(msg, 0);
+
+								if (msg == 'model') {
+									document.querySelector('#livePreview img').src = '';
+								}
+
+								container.querySelector('[data-close]').classList.add('d-none');
+								container.querySelector('[data-stop]').classList.remove('d-none');
+								break;
+							}
+
+							case 'STOP': {
+								const container = (msg == 'model' ? processModel : processPhotogrammetry);
+								container.querySelector('[data-stop]').classList.add('d-none');
+								container.querySelector('[data-close]').classList.remove('d-none');
+								break;
+							}
+
+							case 'PROGRESS': {
+								updateProgressBar(msg.type, msg.value);
+								break;
+							}
+
+							case 'CONSOLE': {
+								const console = (msg.type == 'model' ? processModel : processPhotogrammetry).querySelector('textarea');
+								const scroll = console.scrollTop + console.clientHeight >= console.scrollHeight;
+								console.value += msg.text;
+
+								if (scroll) {
+									console.scrollTop = console.scrollHeight;
+								}
+
+								break;
+							}
+
+							case 'PREVIEW': {
+								document.querySelector('#livePreview img').src = 'data:image/jpeg;base64,' + msg.data;
+								break;
+							}
 						}
-
-						container.querySelector('[data-close]').classList.add('d-none');
-						container.querySelector('[data-stop]').classList.remove('d-none');
-						break;
-					}
-
-					case 'STOP': {
-						const container = (msg == 'model' ? processModel : processPhotogrammetry);
-						container.querySelector('[data-stop]').classList.add('d-none');
-						container.querySelector('[data-close]').classList.remove('d-none');
-						break;
-					}
-
-					case 'PROGRESS': {
-						updateProgressBar(msg.type, msg.value);
-						break;
-					}
-
-					case 'CONSOLE': {
-						const console = (msg.type == 'model' ? processModel : processPhotogrammetry).querySelector('textarea');
-						const scroll = console.scrollTop + console.clientHeight >= console.scrollHeight;
-						console.value += msg.text;
-
-						if (scroll) {
-							console.scrollTop = console.scrollHeight;
-						}
-
-						break;
-					}
-
-					case 'PREVIEW': {
-						document.querySelector('#livePreview img').src = 'data:image/jpeg;base64,' + msg.data;
-						break;
-					}
+					};
+				} else {
+					modal('Error', 'Failed to fetch port. Reload to try again.', 'Close');
 				}
-			};
-		});
+			}
+		};
+
+		xhr.send();
 
 		authenticate.querySelector('form').addEventListener('submit', function(e) {
 			e.preventDefault();

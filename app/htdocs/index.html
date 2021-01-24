@@ -410,7 +410,7 @@
 		settingsPhotogrammetry.querySelector('#startPhotogrammetry').addEventListener('click', function() {
 			const maxNumVertices = document.querySelector('#maxNumVertices').value;
 
-			if (!maxNumVertices.length || !/^[1-9]\d*$/.test(maxNumVertices)) {
+			if (!maxNumVertices.length || !/^\d+$/.test(maxNumVertices)) {
 				modal('Error', '<p>Please enter the maximum number of vertices.</p><p><i>Example: 15000</i></p>', 'Close');
 				return;
 			}

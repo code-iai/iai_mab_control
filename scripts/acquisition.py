@@ -48,7 +48,7 @@ def init():
         rospy.Subscriber('tf', TFMessage, send_turntable_tf, tf.TransformBroadcaster())
     elif not turntable_client.wait_for_server(rospy.Duration(10)):
         sys.exit('Could not connect to turntable.')
-    elif not camera.init(rospy.get_param('~output_directory', 'out'), not simulation):
+    elif not camera.init(rospy.get_param('~output_directory', 'out')):
         sys.exit('Could not initialize camera.')
 
     # add ground plane
@@ -182,8 +182,10 @@ if __name__ == '__main__':
                     set_turntable_angle(360 * i / num_spins)
 
                     if not simulation:
-                        if camera.capture() is None:
-                            pass # TODO: handle capture failure
+                        file = camera.capture()
+
+                        if file is not None:
+                            print('preview: ' + file);
         print('progress: {}'.format(int(float(positions.index(position) + 1) / len(positions) * 100)))
         rospy.sleep(1)
     camera.exit()

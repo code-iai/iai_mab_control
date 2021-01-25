@@ -161,30 +161,32 @@ class WebSocketHandler(WebSocket):
                     with open(settings_dir + 'general.json') as f:
                         settings = json.loads(f.read())
 
-                        with open(settings_dir + 'meshroom/pipeline.mg') as f_pipeline:
-                            pipeline = json.loads(f_pipeline.read())
-                        with open(settings_dir + 'meshroom/pipeline.mg', 'w') as f_pipeline:
-                            pipeline['graph']['CameraInit_1']['inputs']['sensorDatabase'] = settings['meshroom_dir'] + '/aliceVision/share/aliceVision/cameraSensors.db'
-                            pipeline['graph']['ImageMatching_1']['inputs']['tree'] = settings['meshroom_dir'] + '/aliceVision/share/aliceVision/vlfeat_K80L3.SIFT.tree'
-                            f_pipeline.write(json.dumps(pipeline))
+                    with open(settings_dir + 'meshroom/pipeline.mg') as f:
+                        pipeline = json.loads(f.read())
 
-                        with open(settings_dir + 'meshroom/overrides.json', 'w+') as f_overrides:
-                            overrides = {
-                                'MeshDecimate_1': {
-                                    'maxVertices': msg['maxNumberVertices']
-                                }
+                    with open(settings_dir + 'meshroom/pipeline.mg', 'w') as f:
+                        pipeline['graph']['CameraInit_1']['inputs']['sensorDatabase'] = settings['meshroom_dir'] + '/aliceVision/share/aliceVision/cameraSensors.db'
+                        pipeline['graph']['ImageMatching_1']['inputs']['tree'] = settings['meshroom_dir'] + '/aliceVision/share/aliceVision/vlfeat_K80L3.SIFT.tree'
+                        f.write(json.dumps(pipeline))
+
+                    with open(settings_dir + 'meshroom/overrides.json', 'w+') as f:
+                        overrides = {
+                            'MeshDecimate_1': {
+                                'maxVertices': msg['maxNumberVertices']
                             }
-                            f_overrides.write(json.dumps(overrides))
+                        }
 
-                        process_photogrammetry = subprocess.Popen([
-                            os.path.expanduser('{}/meshroom_photogrammetry'.format(settings['meshroom_dir'])),
-                            '--input', os.path.expanduser('{}/out/images'.format(msg['workingDir'])),
-                            '--output', os.path.expanduser('{}/out/model'.format(msg['workingDir'])),
-                            '--pipeline', settings_dir + 'meshroom/pipeline.mg',
-                            '--overrides', settings_dir + 'meshroom/overrides.json'
-                        ], stdout=stdout, stderr=stderr, env=env)
+                        f.write(json.dumps(overrides))
 
-                    monitor(process_photogrammetry, master, slave)
+                    process_photogrammetry = subprocess.Popen([
+                        os.path.expanduser('{}/meshroom_photogrammetry'.format(settings['meshroom_dir'])),
+                        '--input', os.path.expanduser('{}/out/images'.format(msg['workingDir'])),
+                        '--output', os.path.expanduser('{}/out/model'.format(msg['workingDir'])),
+                        '--pipeline', settings_dir + 'meshroom/pipeline.mg',
+                        '--overrides', settings_dir + 'meshroom/overrides.json'
+                    ], stdout=stdout, stderr=stderr, env=env)
+
+                monitor(process_photogrammetry, master, slave)
 
                 broadcast('START', msg['type'])
             elif op == 'STOP':

@@ -10,7 +10,7 @@ def _print(msg, prefix = None):
 
     print('[Camera] {0}'.format(msg))
 
-def init(output_directory, retry = True):
+def init(output_directory):
     global _output_directory, _camera
 
     if os.path.exists(output_directory):
@@ -29,37 +29,31 @@ def init(output_directory, retry = True):
 
     _output_directory = output_directory
     camera = gp.Camera()
+    _print('Initializing...')
 
-    while True:
-        _print('Initializing...')
+    try:
+        camera.init()
+    except gp.GPhoto2Error as err:
+        _print(err, 'Error')
+        return False
 
-        try:
-            camera.init()
-            _camera = camera
-            return True
-        except gp.GPhoto2Error as err:
-            _print(err, 'Error')
-
-            if wait:
-                time.sleep(2)
-            else:
-                return False
+    _camera = camera
+    return True
 
 def capture():
-    file_name = None
+    file = None
 
     if _camera is None:
         _print('Not initialized', 'Error')
     else:
         try:
             camera_capture = _camera.capture(gp.GP_CAPTURE_IMAGE)
-            camera_file = _camera.file_get(camera_capture.folder, camera_capture.name, gp.GP_FILE_TYPE_NORMAL)
-            camera_file.save(os.path.join(_output_directory, camera_capture.name))
-            file_name = camera_capture.name
+            file = os.path.join(_output_directory, camera_capture.name)
+            _camera.file_get(camera_capture.folder, camera_capture.name, gp.GP_FILE_TYPE_NORMAL).save(file)
         except gp.GPhoto2Error as err:
             _print(err, 'Error')
 
-    return file_name
+    return file
 
 def exit():
     if _camera is not None:

@@ -149,15 +149,6 @@ class WebSocketHandler(WebSocket):
                     if process_photogrammetry is not None:
                         return
 
-                    if os.name == 'posix':
-                        master, slave = openpty()
-                        stdout, stderr = slave, slave
-                        env = None
-                    else:
-                        master, slave = None, None
-                        stdout, stderr = subprocess.PIPE, subprocess.STDOUT
-                        env = dict(os.environ, **dict(PYTHONUNBUFFERED='1'))
-
                     with open(settings_dir + 'general.json') as f:
                         settings = json.loads(f.read())
 
@@ -180,6 +171,15 @@ class WebSocketHandler(WebSocket):
                         }
 
                         f.write(json.dumps(overrides))
+
+                    if os.name == 'posix':
+                        master, slave = openpty()
+                        stdout, stderr = slave, slave
+                        env = None
+                    else:
+                        master, slave = None, None
+                        stdout, stderr = subprocess.PIPE, subprocess.STDOUT
+                        env = dict(os.environ, **dict(PYTHONUNBUFFERED='1'))
 
                     process_photogrammetry = subprocess.Popen([
                         settings['meshroom_dir'] + '/meshroom_photogrammetry',

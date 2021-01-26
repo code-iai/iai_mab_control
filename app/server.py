@@ -143,7 +143,7 @@ class WebSocketHandler(WebSocket):
                         stdout, stderr = subprocess.PIPE, subprocess.STDOUT
                         env = dict(os.environ, **dict(PYTHONUNBUFFERED='1'))
 
-                    process_model = subprocess.Popen(['rosrun', 'iai_mab_control', 'acquisition.py'] + params, stdout=slave, stderr=slave, env=env)
+                    process_model = subprocess.Popen(['rosrun', 'iai_mab_control', 'acquisition.py'] + params, stdout=stdout, stderr=stderr, env=env)
                     monitor(process_model, master, slave)
                 elif msg['type'] == 'photogrammetry':
                     if process_photogrammetry is not None:

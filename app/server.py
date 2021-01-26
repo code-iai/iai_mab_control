@@ -161,6 +161,9 @@ class WebSocketHandler(WebSocket):
                     with open(settings_dir + 'general.json') as f:
                         settings = json.loads(f.read())
 
+                    msg['workingDir'] = os.path.expanduser(msg['workingDir'])
+                    settings['meshroom_dir'] = os.path.expanduser(settings['meshroom_dir'])
+
                     with open(settings_dir + 'meshroom/pipeline.mg') as f:
                         pipeline = json.loads(f.read())
 
@@ -179,9 +182,9 @@ class WebSocketHandler(WebSocket):
                         f.write(json.dumps(overrides))
 
                     process_photogrammetry = subprocess.Popen([
-                        os.path.expanduser('{}/meshroom_photogrammetry'.format(settings['meshroom_dir'])),
-                        '--input', os.path.expanduser('{}/out/images'.format(msg['workingDir'])),
-                        '--output', os.path.expanduser('{}/out/model'.format(msg['workingDir'])),
+                        settings['meshroom_dir'] + '/meshroom_photogrammetry',
+                        '--input', msg['workingDir'] + '/out/images',
+                        '--output', msg['workingDir'] + '/out/model',
                         '--pipeline', settings_dir + 'meshroom/pipeline.mg',
                         '--overrides', settings_dir + 'meshroom/overrides.json'
                     ], stdout=stdout, stderr=stderr, env=env)

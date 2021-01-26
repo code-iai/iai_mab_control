@@ -80,8 +80,8 @@ def init():
     # add object on turntable
     ps.pose.position.x = turntable_pos[0]
     ps.pose.position.y = turntable_pos[1]
-    ps.pose.position.z = turntable_pos[2] + max(object_size) / 2
-    scene.add_sphere('object', ps, max(object_size) / 2)
+    ps.pose.position.z = turntable_pos[2] + object_size[2] / 2
+    scene.add_cylinder('object', ps, object_size[2], max(object_size[:2]) / 2)
 
     # add camera
     eef_link = move_group.get_end_effector_link()
@@ -128,11 +128,11 @@ def move_to(position, orientation=None, face=None):
         pose.orientation.w = orientation[3]
     else:
         if face == 'top':
-            angle_y = math.atan2(pose.position.z - turntable_pos[2] - max(object_size), pose.position.y - turntable_pos[1] - camera_pos[2])
+            angle_y = math.atan2(pose.position.z - turntable_pos[2] - object_size[2], pose.position.y - turntable_pos[1] - camera_pos[2])
         elif face == 'bottom':
             angle_y = math.atan2(pose.position.z - turntable_pos[2], pose.position.y - turntable_pos[1] - camera_pos[2])
         else: # center
-            angle_y = math.atan2(pose.position.z - turntable_pos[2] - max(object_size) / 2, pose.position.y - turntable_pos[1] - camera_pos[2])
+            angle_y = math.atan2(pose.position.z - turntable_pos[2] - object_size[2] / 2, pose.position.y - turntable_pos[1] - camera_pos[2])
 
         angle_z = math.atan2(turntable_pos[1] - pose.position.y, turntable_pos[0] - pose.position.x - camera_pos[1])
         quaternion = tf.transformations.quaternion_from_euler(0.0, angle_y, angle_z)
@@ -156,15 +156,15 @@ def set_turntable_angle(angle, radians=False):
 
 def create_arm_positions(n=15):
     min_y = turntable_pos[1] + camera_pos[2]
-    max_y = turntable_pos[1] + max(object_size) / 2 + camera_size[0] + camera_pos[0] + distance_camera_object
+    max_y = turntable_pos[1] + max(object_size[:2]) / 2 + camera_size[0] + camera_pos[0] + distance_camera_object
     min_z = turntable_pos[2] + camera_size[2] / 2 - camera_pos[2]
-    max_z = turntable_pos[2] + max(object_size) + camera_size[0] + camera_pos[0] + distance_camera_object
+    max_z = turntable_pos[2] + object_size[2] + camera_size[0] + camera_pos[0] + distance_camera_object
 
-    div = max(object_size) / 2 + max(object_size)
+    div = max(object_size[:2]) / 2 + object_size[2]
     positions = []
-    for y in numpy.linspace(min_y, max_y, round(n / div * max(object_size) / 2)):
+    for y in numpy.linspace(min_y, max_y, round(n / div * max(object_size[:2]) / 2)):
         positions.append([-camera_pos[1], y, max_z])
-    for z in numpy.linspace(max_z, min_z, round(n / div * max(object_size)) + 1)[1:]:
+    for z in numpy.linspace(max_z, min_z, round(n / div * object_size[2]) + 1)[1:]:
         positions.append([-camera_pos[1], max_y, z])
 
     return positions

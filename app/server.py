@@ -144,7 +144,7 @@ class WebSocketHandler(WebSocket):
                         env = dict(os.environ, **dict(PYTHONUNBUFFERED='1'))
 
                     process_model = subprocess.Popen(['rosrun', 'iai_mab_control', 'acquisition.py'] + params, stdout=slave, stderr=slave, env=env)
-                    monitor(process_model, os.fdopen(master), os.fdopen(slave, 'w', 0))
+                    monitor(process_model, master, slave)
                 elif msg['type'] == 'photogrammetry':
                     if process_photogrammetry is not None:
                         return
@@ -189,7 +189,7 @@ class WebSocketHandler(WebSocket):
                         '--overrides', settings_dir + 'meshroom/overrides.json'
                     ], stdout=stdout, stderr=stderr, env=env)
 
-                monitor(process_photogrammetry, master, slave)
+                    monitor(process_photogrammetry, master, slave)
 
                 broadcast('START', msg['type'])
             elif op == 'STOP':

@@ -165,8 +165,14 @@ class WebSocketHandler(WebSocket):
 
                     with open(settings_dir + 'meshroom/overrides.json', 'w+') as f:
                         overrides = {
+                            'DepthMap_1': {
+                                'downscale': int(msg['depthMapDownscaling'])
+                            },
+                            'MeshFiltering_1': {
+                                'keepLargestMeshOnly': msg['keepLargestMeshOnly']
+                            },
                             'MeshDecimate_1': {
-                                'maxVertices': msg['maxNumberVertices']
+                                'maxVertices': int(msg['maxNumberVertices'])
                             }
                         }
 

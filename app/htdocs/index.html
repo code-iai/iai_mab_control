@@ -131,9 +131,17 @@
 								</div>
 							</div>
 							<hr>
+							<div class="form-floating mb-3">
+								<input type="number" class="form-control" id="depthMapDownscaling" placeholder="Depth map downscaling">
+								<label for="depthMapDownscaling">Depth map downscaling</label>
+							</div>
+							<div class="form-check mb-3">
+								<input type="checkbox" class="form-check-input" id="keepLargestMeshOnly">
+								<label class="form-check-label" for="keepLargestMeshOnly">Keep largest mesh only</label>
+							</div>
 							<div class="form-floating">
-								<input type="number" class="form-control" id="maxNumVertices" placeholder="Maximum number of vertices">
-								<label for="maxNumVertices">Maximum number of vertices</label>
+								<input type="number" class="form-control" id="maxNumVertices" placeholder="Maximum number of vertices (0 for infinity)">
+								<label for="maxNumVertices">Maximum number of vertices (0 for infinity)</label>
 							</div>
 							<hr>
 							<form class="mb-5" data-save="photogrammetry">
@@ -317,7 +325,13 @@
 							const params = settings[type][name];
 
 							Object.keys(params).forEach(function(param) {
-								document.querySelector('#' + param).value = params[param];
+								const input = document.querySelector('#' + param);
+
+								if (input.type == 'checkbox') {
+									input.checked = params[param];
+								} else {
+									input.value = params[param];
+								}
 							});
 
 							document.querySelector('#name' + (type == 'model' ? 'Model' : 'Photogrammetry')).value = name;
@@ -342,8 +356,9 @@
 				const name = document.querySelector('#name' + (type == 'model' ? 'Model' : 'Photogrammetry')).value;
 				const params = {};
 
-				(type == 'model' ? ['cameraDistance', 'numPositions', 'numSpins'] : ['maxNumVertices']).forEach(function(param) {
-					params[param] = document.querySelector('#' + param).value;
+				(type == 'model' ? ['cameraDistance', 'numPositions', 'numSpins'] : ['depthMapDownscaling', 'keepLargestMeshOnly', 'maxNumVertices']).forEach(function(param) {
+					const input = document.querySelector('#' + param);
+					params[param] = (input.type == 'checkbox' ? input.checked : input.value);
 				});
 
 				settings[type][name] = params;
@@ -408,10 +423,17 @@
 		});
 
 		settingsPhotogrammetry.querySelector('#startPhotogrammetry').addEventListener('click', function() {
+			const depthMapDownscaling = document.querySelector('#depthMapDownscaling').value;
+
+			if (!depthMapDownscaling.length || !/^[1-9]\d*$/.test(depthMapDownscaling)) {
+				modal('Error', '<p>Please enter the depth map downscaling.</p><p><i>Example: 2</i></p>', 'Close');
+				return;
+			}
+
 			const maxNumVertices = document.querySelector('#maxNumVertices').value;
 
 			if (!maxNumVertices.length || !/^\d+$/.test(maxNumVertices)) {
-				modal('Error', '<p>Please enter the maximum number of vertices.</p><p><i>Example: 15000</i></p>', 'Close');
+				modal('Error', '<p>Please enter the maximum number of vertices.</p><p><i>Example: 0</i></p>', 'Close');
 				return;
 			}
 
@@ -424,7 +446,7 @@
 
 			settingsPhotogrammetry.classList.add('d-none');
 			processPhotogrammetry.classList.remove('d-none');
-			send('START', { type: 'photogrammetry', workingDir: workingDir, maxNumberVertices: maxNumVertices });
+			send('START', { type: 'photogrammetry', workingDir: workingDir, depthMapDownscaling: depthMapDownscaling, keepLargestMeshOnly: document.querySelector('#keepLargestMeshOnly').checked, maxNumberVertices: maxNumVertices });
 		});
 
 		document.querySelectorAll('[data-close]').forEach(function(btn) {

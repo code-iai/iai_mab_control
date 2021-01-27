@@ -4,6 +4,9 @@
     "max_velocity": "0.1",
     "meshroom_dir": "~/Meshroom",
     "password": "",
-    "photobox_pos": "[0.0, -0.6, 0.0]",
-    "photobox_size": "[1.0, 0.7, 1.0]"
+    "photobox_pos": "[0.08, -0.5325, 0.217]",
+    "photobox_size": "[0.68, 0.785, 1.0]",
+    "turntable_pos": "[0.08, -0.69, 0.235]",
+    "turntable_radius": "0.186",
+    "wall_thickness": "0.056"
 }

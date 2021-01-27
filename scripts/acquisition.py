@@ -20,19 +20,20 @@ def init():
 
     rospy.init_node('photogrammetry')
 
-    camera_pos = rospy.get_param('~camera_pos', [0.0, -0.02, 0.07])
-    camera_size = rospy.get_param('~camera_size', [0.149, 0.134, 0.2486])
+    camera_pos = rospy.get_param('~camera_pos', [0.0, 0.0, 0.0])
+    camera_size = rospy.get_param('~camera_size', [0.1, 0.1, 0.1])
     distance_camera_object = rospy.get_param('~distance_camera_object', 0.2)
     max_velocity = rospy.get_param('~max_velocity', 0.1)
     num_positions = rospy.get_param('~num_positions', 15)
     num_spins = rospy.get_param('~num_spins', 8)
     object_size = numpy.array(rospy.get_param('~object_size', [0.2, 0.2, 0.2]))
     photobox_pos = rospy.get_param('~photobox_pos', [0.0, -0.6, 0.0])
-    photobox_size = rospy.get_param('~photobox_size', [1.0, 0.7, 1.0])
-    simulation = rospy.get_param('~simulation', False)
-    test = rospy.get_param('~test', False)
-    turntable_pos = photobox_pos
-    turntable_pos[2] += 0.1 # TODO: measure turntable z-value in lab
+    photobox_size = rospy.get_param('~photobox_size', [0.7, 0.7, 1.0])
+    simulation = rospy.get_param('~simulation', True)
+    test = rospy.get_param('~test', True)
+    turntable_pos = rospy.get_param('~turntable_pos', photobox_pos[:2] + [photobox_pos[2] + 0.02])
+    turntable_radius = rospy.get_param('~turntable_radius', 0.2)
+    wall_thickness = rospy.get_param('~wall_thickness', 0.04)
 
     move_group = MoveGroupCommander('manipulator')
     move_group.set_max_velocity_scaling_factor(1.0 if simulation else max_velocity)
@@ -57,25 +58,32 @@ def init():
     scene.add_plane('ground', ps)
 
     # add photobox
-    ps.pose.position.x = photobox_size[0] / 2
+    ps.pose.position.x = photobox_pos[0] + photobox_size[0] / 2 + wall_thickness / 2
     ps.pose.position.y = photobox_pos[1]
-    ps.pose.position.z = photobox_size[2] / 2
-    scene.add_box('box_wall_left', ps, (0.01, photobox_size[1], photobox_size[2]))
+    ps.pose.position.z = photobox_pos[2] + photobox_size[2] / 2
+    scene.add_box('box_wall_left', ps, (wall_thickness, photobox_size[1], photobox_size[2]))
 
-    ps.pose.position.x = -photobox_size[0] / 2
+    ps.pose.position.x = photobox_pos[0] - photobox_size[0] / 2 - wall_thickness / 2
     ps.pose.position.y = photobox_pos[1]
-    ps.pose.position.z = photobox_size[2] / 2
-    scene.add_box('box_wall_right', ps, (0.01, photobox_size[1], photobox_size[2]))
-
-    ps.pose.position.x = photobox_pos[0]
-    ps.pose.position.y = photobox_pos[1] - photobox_size[1] / 2
-    ps.pose.position.z = photobox_size[2] / 2
-    scene.add_box('box_wall_back', ps, (photobox_size[0], 0.01, photobox_size[2]))
+    ps.pose.position.z = photobox_pos[2] + photobox_size[2] / 2
+    scene.add_box('box_wall_right', ps, (wall_thickness, photobox_size[1], photobox_size[2]))
 
     ps.pose.position.x = photobox_pos[0]
+    ps.pose.position.y = photobox_pos[1] - photobox_size[1] / 2 - wall_thickness / 2
+    ps.pose.position.z = photobox_pos[2] + photobox_size[2] / 2
+    scene.add_box('box_wall_back', ps, (photobox_size[0], wall_thickness, photobox_size[2]))
+
+    ps.pose.position.x = photobox_pos[0]
     ps.pose.position.y = photobox_pos[1]
-    ps.pose.position.z = 0.0
-    scene.add_box('box_ground', ps, (photobox_size[0], photobox_size[1], 0.01))
+    ps.pose.position.z = photobox_pos[2] - wall_thickness / 2
+    scene.add_box('box_ground', ps, (photobox_size[0], photobox_size[1], wall_thickness))
+
+    # add turntable
+    turntable_height = turntable_pos[2] - photobox_pos[2]
+    ps.pose.position.x = turntable_pos[0]
+    ps.pose.position.y = turntable_pos[1]
+    ps.pose.position.z = photobox_pos[2] + turntable_height / 2
+    scene.add_cylinder('turntable', ps, turntable_height, turntable_radius)
 
     # add object on turntable
     ps.pose.position.x = turntable_pos[0]

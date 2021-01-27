@@ -36,9 +36,9 @@ class HTTPHandler(SimpleHTTPRequestHandler):
             self.send_error(404);
 
 class MyHTTPServer(HTTPServer):
-    def __init__(self, port, path = 'htdocs'):
+    def __init__(self, server_address, path = 'htdocs'):
         self.base_path = os.path.join(os.path.dirname(__file__), path)
-        HTTPServer.__init__(self, ('', port), HTTPHandler)
+        HTTPServer.__init__(self, server_address, HTTPHandler)
 
 class WebSocketHandler(WebSocket):
     authenticated = False
@@ -300,12 +300,12 @@ for opt, arg in opts:
     elif opt == '--socket_port':
         socket_port = int(arg)
 
-http_thread = Thread(target=lambda : MyHTTPServer(http_port).serve_forever())
+http_thread = Thread(target=lambda : MyHTTPServer(('', http_port)).serve_forever())
 http_thread.daemon = True
 http_thread.start()
 print('HTTP listening on {}'.format(http_port))
 
-socket_thread = Thread(target=lambda : WebSocketServer('', socket_port, WebSocketHandler).serve_forever())
+socket_thread = Thread(target=lambda : WebSocketServer('0.0.0.0', socket_port, WebSocketHandler).serve_forever())
 socket_thread.daemon = True
 socket_thread.start()
 print('WebSocket listening on {}'.format(socket_port))

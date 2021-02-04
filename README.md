@@ -109,9 +109,17 @@ The following optional parameters can be set by adding them to the _rosrun_ comm
 
 The easiest way to work with the bot during development is to use the provided launch files.
 
+### Bringup
+
+_bringup.launch_ launches all the required nodes for the usage with real hardware. The parameter _robot\_ip_ is set to 192.168.102.99 by default.
+
+```
+$ roslaunch iai_mab_control bringup.launch robot_ip:=IP_OF_THE_ROBOT
+```
+
 ### Simulation
 
-_simulation.launch_ launches a simulation in Gazebo.
+_simulation.launch_ launches all the required nodes for the usage in Gazebo.
 
 ```
 $ roslaunch iai_mab_control simulation.launch

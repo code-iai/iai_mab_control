@@ -4,7 +4,7 @@
 
     <include file="$(find ur_bringup)/launch/ur5_bringup.launch">
         <arg name="limited" value="true"/>
-        <arg name="robot_ip" value="$(arg robot_name)"/>
+        <arg name="robot_ip" value="$(arg robot_ip)"/>
     </include>
 
     <include file="$(find ur5_moveit_config)/launch/ur5_moveit_planning_execution.launch">

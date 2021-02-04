@@ -3,7 +3,9 @@
 from actionlib import SimpleActionClient
 from geometry_msgs.msg import Pose, PoseStamped
 from iai_scanning_table_msgs.msg import scanning_tableAction, scanning_tableGoal
+from imp import load_source
 from moveit_commander import MoveGroupCommander, PlanningSceneInterface, RobotCommander
+from rospkg import RosPack
 from tf2_msgs.msg import TFMessage
 
 import camera
@@ -15,7 +17,7 @@ import sys
 import tf
 
 def init():
-    global move_group, robot, scene, turntable_client
+    global move_group, robot, scene, turntable
     global camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, reach, simulation, test, turntable_pos
 
     rospy.init_node('photogrammetry')
@@ -43,12 +45,17 @@ def init():
 
     scene = PlanningSceneInterface(synchronous=True)
 
-    turntable_client = SimpleActionClient('scanning_table_action_server', scanning_tableAction)
+    try:
+        turntable = load_source('st_control', RosPack().get_path('iai_scanning_table') + '/scripts/iai_scanning_table/st_control.py').ElmoUdp()
+        turntable.configure()
+        turntable.reset_encoder()
+    except:
+        turntable = None
 
     if simulation or test:
         move_home()
         rospy.Subscriber('tf', TFMessage, send_turntable_tf, tf.TransformBroadcaster())
-    elif not turntable_client.wait_for_server(rospy.Duration(10)):
+    elif turntable is None or not turntable.start_controller():
         sys.exit('Could not connect to turntable.')
     elif not camera.init(rospy.get_param('~output_directory', 'out')):
         sys.exit('Could not initialize camera.')
@@ -156,12 +163,13 @@ def move_to(position, orientation=None, face=None):
     move_group.clear_pose_targets()
     return result
 
-def set_turntable_angle(angle, radians=False):
-    msg = scanning_tableGoal()
-    msg.angle = angle if radians else math.radians(angle)
-    msg.apply_modulo = True
-    turntable_client.send_goal(msg)
-    return True if simulation else turntable_client.wait_for_result(rospy.Duration(0))
+def set_turntable_deg(deg, speed=30):
+    if simulation:
+        return True
+
+    turntable.set_speed_deg(speed)
+    turntable.move_to_deg(deg)
+    return turntable.wait_to_reach_target()
 
 def create_arm_positions(n=15):
     positions = []
@@ -202,9 +210,9 @@ if __name__ == '__main__':
             print('Face: {}'.format(face))
             if move_to(position, face=face) and not test:
                 for i in range(num_spins):
-                    angle = 360 * i / num_spins
-                    print('Turntable angle: {}'.format(angle))
-                    set_turntable_angle(angle)
+                    deg = 360 * i / num_spins
+                    print('Turntable angle: {} degrees'.format(deg))
+                    set_turntable_deg(deg)
 
                     if not simulation:
                         print('Capturing photo')

@@ -7,6 +7,7 @@ from imp import load_source
 from moveit_commander import MoveGroupCommander, PlanningSceneInterface, RobotCommander
 from rospkg import RosPack
 from tf2_msgs.msg import TFMessage
+from visualization_msgs.msg import Marker
 
 import camera
 import math
@@ -17,6 +18,7 @@ import sys
 import tf
 
 def init():
+    global marker_pub
     global move_group, robot, scene, turntable
     global camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, reach, simulation, test, turntable_pos
 
@@ -38,7 +40,10 @@ def init():
     turntable_radius = rospy.get_param('~turntable_radius', 0.2)
     wall_thickness = rospy.get_param('~wall_thickness', 0.04)
 
+    marker_pub = rospy.Publisher('/visualization_marker', Marker, queue_size=1, latch=True)
+
     move_group = MoveGroupCommander('manipulator')
+    move_group.set_max_acceleration_scaling_factor(1.0 if simulation else max_velocity)
     move_group.set_max_velocity_scaling_factor(1.0 if simulation else max_velocity)
 
     robot = RobotCommander()
@@ -113,6 +118,18 @@ def init():
 
     scene.attach_box(eef_link, 'camera', ps, camera_size)
 
+def show_marker(pose, lifetime_secs=0.0):
+    marker = Marker()
+    marker.header.frame_id = 'world'
+    marker.pose = pose
+    marker.scale.x = 0.1
+    marker.scale.y = 0.01
+    marker.scale.z = 0.01
+    marker.color.r = 1.0
+    marker.color.a = 1.0
+    marker.lifetime.secs = lifetime_secs
+    marker_pub.publish(marker)
+
 def send_turntable_tf(msg, tb):
     try:
         tb.sendTransform(turntable_pos, (0, 0, 0, 1), rospy.Time(), 'turntable', 'world')
@@ -157,6 +174,7 @@ def move_to(position, orientation=None, face=None):
         pose.orientation.z = quaternion[2]
         pose.orientation.w = quaternion[3]
 
+    show_marker(pose)
     move_group.set_pose_target(pose)
     result = move_group.go(wait=True)
     move_group.stop()

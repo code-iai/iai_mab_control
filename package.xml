@@ -54,80 +54,44 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>actionlib</build_depend>
-  <build_depend>base64</build_depend>
-  <build_depend>BaseHTTPServer</build_depend>
   <build_depend>geometry_msgs</build_depend>
-  <build_depend>getopt</build_depend>
   <build_depend>gphoto2</build_depend>
   <build_depend>iai_scanning_table_msgs</build_depend>
-  <build_depend>math</build_depend>
   <build_depend>moveit_commander</build_depend>
-  <build_depend>numpy</build_depend>
-  <build_depend>os</build_depend>
-  <build_depend>pty</build_depend>
-  <build_depend>re</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  <build_depend>SimpleHTTPServer</build_depend>
-  <build_depend>simple_websocket_server</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>subprocess</build_depend>
-  <build_depend>sys</build_depend>
-  <build_depend>threading</build_depend>
   <build_depend>time</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>tf2_msgs</build_depend>
   <build_depend>trajectory_msgs</build_depend>
+  <build_depend>visualization_msgs</build_depend>
   <build_export_depend>actionlib</build_export_depend>
-  <build_export_depend>base64</build_export_depend>
-  <build_export_depend>BaseHTTPServer</build_export_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
-  <build_export_depend>getopt</build_export_depend>
   <build_export_depend>gphoto2</build_export_depend>
   <build_export_depend>iai_scanning_table_msgs</build_export_depend>
-  <build_export_depend>math</build_export_depend>
   <build_export_depend>moveit_commander</build_export_depend>
-  <build_export_depend>numpy</build_export_depend>
-  <build_export_depend>os</build_export_depend>
-  <build_export_depend>pty</build_export_depend>
-  <build_export_depend>re</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>sensor_msgs</build_export_depend>
-  <build_export_depend>SimpleHTTPServer</build_export_depend>
-  <build_export_depend>simple_websocket_server</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
-  <build_export_depend>subprocess</build_export_depend>
-  <build_export_depend>sys</build_export_depend>
-  <build_export_depend>threading</build_export_depend>
   <build_export_depend>time</build_export_depend>
   <build_export_depend>tf</build_export_depend>
   <build_export_depend>tf2_msgs</build_export_depend>
   <build_export_depend>trajectory_msgs</build_export_depend>
+  <build_export_depend>visualization_msgs</build_export_depend>
   <exec_depend>actionlib</exec_depend>
-  <exec_depend>base64</exec_depend>
-  <exec_depend>BaseHTTPServer</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>getopt</exec_depend>
   <exec_depend>gphoto2</exec_depend>
   <exec_depend>iai_scanning_table_msgs</exec_depend>
-  <exec_depend>math</exec_depend>
   <exec_depend>moveit_commander</exec_depend>
-  <exec_depend>numpy</exec_depend>
-  <exec_depend>os</exec_depend>
-  <exec_depend>pty</exec_depend>
-  <exec_depend>re</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
-  <exec_depend>SimpleHTTPServer</exec_depend>
-  <exec_depend>simple_websocket_server</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>subprocess</exec_depend>
-  <exec_depend>sys</exec_depend>
-  <exec_depend>threading</exec_depend>
   <exec_depend>time</exec_depend>
   <exec_depend>tf</exec_depend>
   <exec_depend>tf2_msgs</exec_depend>
   <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

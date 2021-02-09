@@ -3,7 +3,9 @@
 from actionlib import SimpleActionClient
 from geometry_msgs.msg import Pose, PoseStamped
 from iai_scanning_table_msgs.msg import scanning_tableAction, scanning_tableGoal
+from imp import load_source
 from moveit_commander import MoveGroupCommander, PlanningSceneInterface, RobotCommander
+from rospkg import RosPack
 from tf2_msgs.msg import TFMessage
 
 import camera
@@ -15,8 +17,8 @@ import sys
 import tf
 
 def init():
-    global move_group, robot, scene, turntable_client
-    global camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, simulation, test, turntable_pos
+    global move_group, robot, scene, turntable
+    global camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, reach, simulation, test, turntable_pos
 
     rospy.init_node('photogrammetry')
 
@@ -29,6 +31,7 @@ def init():
     object_size = numpy.array(rospy.get_param('~object_size', [0.2, 0.2, 0.2]))
     photobox_pos = rospy.get_param('~photobox_pos', [0.0, -0.6, 0.0])
     photobox_size = rospy.get_param('~photobox_size', [0.7, 0.7, 1.0])
+    reach = rospy.get_param('~reach', 0.85)
     simulation = rospy.get_param('~simulation', True)
     test = rospy.get_param('~test', True)
     turntable_pos = rospy.get_param('~turntable_pos', photobox_pos[:2] + [photobox_pos[2] + 0.02])
@@ -42,12 +45,17 @@ def init():
 
     scene = PlanningSceneInterface(synchronous=True)
 
-    turntable_client = SimpleActionClient('scanning_table_action_server', scanning_tableAction)
+    try:
+        turntable = load_source('st_control', RosPack().get_path('iai_scanning_table') + '/scripts/iai_scanning_table/st_control.py').ElmoUdp()
+        turntable.configure()
+        turntable.reset_encoder()
+    except:
+        turntable = None
 
     if simulation or test:
         move_home()
         rospy.Subscriber('tf', TFMessage, send_turntable_tf, tf.TransformBroadcaster())
-    elif not turntable_client.wait_for_server(rospy.Duration(10)):
+    elif turntable is None or not turntable.start_controller():
         sys.exit('Could not connect to turntable.')
     elif not camera.init(rospy.get_param('~output_directory', 'out')):
         sys.exit('Could not initialize camera.')
@@ -155,41 +163,59 @@ def move_to(position, orientation=None, face=None):
     move_group.clear_pose_targets()
     return result
 
-def set_turntable_angle(angle, radians=False):
-    msg = scanning_tableGoal()
-    msg.angle = angle if radians else math.radians(angle)
-    msg.apply_modulo = True
-    turntable_client.send_goal(msg)
-    return True if simulation else turntable_client.wait_for_result(rospy.Duration(0))
+def set_turntable_deg(deg, speed=30):
+    if simulation:
+        return True
+
+    turntable.set_speed_deg(speed)
+    turntable.move_to_deg(deg)
+    return turntable.wait_to_reach_target()
 
 def create_arm_positions(n=15):
-    min_y = turntable_pos[1] + camera_pos[2]
-    max_y = turntable_pos[1] + max(object_size[:2]) / 2 + camera_size[0] + camera_pos[0] + distance_camera_object
-    min_z = turntable_pos[2] + camera_size[2] / 2 - camera_pos[2]
-    max_z = turntable_pos[2] + object_size[2] + camera_size[0] + camera_pos[0] + distance_camera_object
-
-    div = max(object_size[:2]) / 2 + object_size[2]
     positions = []
+    distance = max(camera_size[:2]) + distance_camera_object
+    div = max(object_size[:2]) / 2 + object_size[2] + math.pi * 2 * distance_camera_object / 4
+
+    min_y = turntable_pos[1]
+    max_y = turntable_pos[1] + max(object_size[:2]) / 2
+    min_z = turntable_pos[2]
+    max_z = turntable_pos[2] + object_size[2]
+
     for y in numpy.linspace(min_y, max_y, round(n / div * max(object_size[:2]) / 2)):
-        positions.append([-camera_pos[1], y, max_z])
-    for z in numpy.linspace(max_z, min_z, round(n / div * object_size[2]) + 1)[1:]:
-        positions.append([-camera_pos[1], max_y, z])
+        position = [turntable_pos[0] - camera_pos[1], y, max_z + distance]
+        if numpy.linalg.norm(position) <= reach:
+            positions.append(position)
+
+    num = round(n / div * math.pi * 2 * distance_camera_object / 4)
+    for i in range(int(num)):
+        position = [turntable_pos[0] - camera_pos[1], max_y + math.sin(math.pi / 2 / num * i) * distance, max_z + math.cos(math.pi / 2 / num * i) * distance]
+        if numpy.linalg.norm(position) <= reach:
+            positions.append(position)
+
+    for z in numpy.linspace(max_z, min_z, round(n / div * object_size[2])):
+        position = [turntable_pos[0] - camera_pos[1], max_y + distance, z]
+        if numpy.linalg.norm(position) <= reach:
+            positions.append(position)
 
     return positions
 
 if __name__ == '__main__':
-    print('progress: 0')
-
     init()
 
     positions = create_arm_positions(num_positions)
+    print('Number positions: {}'.format(len(positions)))
     for position in positions:
+        print('Position: {}'.format(position))
         for face in ['top', 'center', 'bottom']:
+            print('Face: {}'.format(face))
             if move_to(position, face=face) and not test:
                 for i in range(num_spins):
-                    set_turntable_angle(360 * i / num_spins)
+                    deg = 360 * i / num_spins
+                    print('Turntable angle: {} degrees'.format(deg))
+                    set_turntable_deg(deg)
 
                     if not simulation:
+                        print('Capturing photo')
                         file = camera.capture()
 
                         if file is not None:

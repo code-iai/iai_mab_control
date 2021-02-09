@@ -23,7 +23,7 @@ def init(output_directory):
             _print('Output directory is not empty, files might get overridden', 'Warning')
     else:
         try:
-            os.mkdir(output_directory)
+            os.makedirs(output_directory)
         except:
             _print('Failed to create output directory', 'Error')
             return False

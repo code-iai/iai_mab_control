@@ -1,5 +1,6 @@
 import gphoto2 as gp
 import os
+import subprocess
 import time
 
 _camera = None
@@ -32,6 +33,9 @@ def init(output_directory):
     _print('Initializing...')
 
     try:
+        if os.name == 'posix':
+            subprocess.Popen(['pkill', '-f', 'gphoto2']).wait()
+
         camera.init()
     except gp.GPhoto2Error as err:
         _print(err, 'Error')

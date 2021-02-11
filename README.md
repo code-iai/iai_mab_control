@@ -114,11 +114,12 @@ The easiest way to work with the bot during development is to use the provided l
 
 ### Bringup
 
-_bringup.launch_ launches all the required nodes for the usage with real hardware. The parameter _robot\_ip_ is set to 192.168.102.99 by default.
+_bringup.launch_ launches all the required nodes for the usage with real hardware.
 
 ```
-$ roslaunch iai_mab_control bringup.launch robot_ip:=IP_OF_THE_ROBOT
+$ roslaunch iai_mab_control bringup.launch robot_ip:=IP_OF_THE_ROBOT action_ns:=MOVEIT_CONTROLLER_TOPIC
 ```
+By default the parameter _robot\_ip_ is set to _192.168.102.99_ and the parameter _action\_ns_ is set to _scaled\_pos\_traj\_controller/follow\_joint\_trajectory_.
 
 ### Simulation
 

@@ -27,7 +27,7 @@ In the photogrammetry environment there's a turntable which requires the robot d
 
 They should be placed inside _~/catkin_ws/src/iai_robot_drivers/_. It is recommended to only download these two packages as the others are not needed and might require additional dependencies upon building the workspace.
 
-To work with the Universal Robot UR5 the **ROS-Industrial Universal Robot meta-package** is required. Installation instructions can be found here: https://github.com/ros-industrial/universal_robot
+To work with the Universal Robot UR5 the **Universal\_Robots\_ROS\_Driver** is required. Installation instructions can be found here: https://github.com/UniversalRobots/Universal_Robots_ROS_Driver. We recommend changing the joint limits for the UR5 MoveIt configuration in the ur5\_moveit\_config package when working on real hardware as by default the velocity and acceleration is very high. The YAML file should be located at _~/catkin_ws/src/fmauch_universal_robot/ur5_moveit_config/config/joint_limits.yaml_.
 
 The robot is controlled using the **moveit_commander** package which can be installed using _apt_.
 
@@ -63,6 +63,9 @@ Once all requirements are taken care of simply clone the repository inside _~/ca
 $ cd ~/catkin_ws/src
 $ git clone -b devel https://github.com/code-iai/iai_mab_control.git
 $ cd ..
+$ sudo apt update
+$ rosdep update
+$ rosdep install --from-paths src --ignore-src -y
 $ catkin_make
 ```
 

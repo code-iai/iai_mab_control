@@ -89,6 +89,12 @@ The bot can be started using _rosrun_.
 $ rosrun iai_mab_control acquisition.py
 ```
 
+Remapping arguments might be required depending on the controllers namespace. By default the MoveIt configuration expects follow_joint_trajectory to be the controller topic but when working on the real robot we figured that the robot listened on scaled_pos_traj_controller/follow_joint_trajectory instead.
+
+```
+$ rosrun iai_mab_control acquisition.py follow_joint_trajectory:=scaled_pos_traj_controller/follow_joint_trajectory
+```
+
 The following optional parameters can be set by adding them to the _rosrun_ command.
 
 | Parameter              | Description                                                                                                                                          | Example                             |

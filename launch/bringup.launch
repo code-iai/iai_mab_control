@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="robot_ip" default="192.168.102.99"/>
+    <arg name="action_ns" default="scaled_pos_traj_controller/follow_joint_trajectory"/>
+
+    <remap from="$(arg action_ns)" to="follow_joint_trajectory"/>
 
     <include file="$(find ur_robot_driver)/launch/ur5_bringup.launch">
         <arg name="robot_ip" value="$(arg robot_ip)"/>

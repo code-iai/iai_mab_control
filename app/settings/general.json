@@ -1,6 +1,8 @@
 {
-    "camera_pos": "[0.0, -0.02, 0.07]",
-    "camera_size": "[0.235, 0.145, 0.26]",
+    "camera_mesh": "~/catkin_ws/src/iai_mab_control/assets/camera.stl",
+    "camera_orientation": "[90, 0, 90]",
+    "camera_pos": "[0.0, 0.0, 0.0]",
+    "camera_size": "[0.0015, 0.0015, 0.0015]",
     "max_velocity": "0.5",
     "meshroom_dir": "~/Meshroom",
     "password": "",

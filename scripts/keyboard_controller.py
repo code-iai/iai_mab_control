@@ -31,12 +31,14 @@ def on_key(key):
     key = key.data
     if (key == 43 or key == 45) and joint is None:
         print('\nYou have to select a joint first')
-    elif key == 43: # +
-        joint_goals[joint_names.index(joint)] += math.radians(5)
+    elif key == 43 or key == 45:
+        if key == 43: # +
+            joint_goals[joint_names.index(joint)] += math.radians(5)
+        else: # -
+            joint_goals[joint_names.index(joint)] -= math.radians(5)
+
         set_joints(joint_goals[0], joint_goals[1], joint_goals[2], joint_goals[3], joint_goals[4], joint_goals[5], radians=True)
-    elif key == 45: # -
-        joint_goals[joint_names.index(joint)] -= math.radians(5)
-        set_joints(joint_goals[0], joint_goals[1], joint_goals[2], joint_goals[3], joint_goals[4], joint_goals[5], radians=True)
+        print('\nNew position at {} degrees'.format(math.degrees(joint_goals[joint_names.index(joint)])))
     else:
         if key == 49: # 1
             joint = 'elbow_joint'
@@ -50,7 +52,7 @@ def on_key(key):
             joint = 'wrist_2_joint'
         elif key == 54: # 6
             joint = 'wrist_3_joint'
-        print('\nSwitch joint to {}'.format(joint))
+        print('\nSwitched joint to {}'.format(joint))
         print('Current position at {} degrees.'.format(math.degrees(joint_goals[joint_names.index(joint)])))
 
 if __name__ == '__main__':
@@ -75,3 +77,4 @@ if __name__ == '__main__':
 
     rospy.Subscriber('key', Int32, on_key)
     rospy.spin()
+

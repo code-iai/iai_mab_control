@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 from actionlib import SimpleActionClient
-from geometry_msgs.msg import Pose, PoseStamped
+from geometry_msgs.msg import Pose, PoseStamped, Quaternion
 from iai_scanning_table_msgs.msg import scanning_tableAction, scanning_tableGoal
 from imp import load_source
 from moveit_commander import MoveGroupCommander, PlanningSceneInterface, RobotCommander
 from rospkg import RosPack
-from tf2_msgs.msg import TFMessage
 from visualization_msgs.msg import Marker
 
 import camera
@@ -19,11 +18,13 @@ import tf
 
 def init():
     global marker_pub
-    global move_group, robot, scene, turntable
-    global camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, reach, simulation, test, turntable_pos
+    global move_group, turntable
+    global camera_mesh, camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, reach, simulation, test, turntable_pos
 
-    rospy.init_node('photogrammetry')
+    rospy.init_node('acquisition')
 
+    camera_mesh = rospy.get_param('~camera_mesh', None)
+    camera_orientation = rospy.get_param('~camera_orientation', None)
     camera_pos = rospy.get_param('~camera_pos', [0.0, 0.0, 0.0])
     camera_size = rospy.get_param('~camera_size', [0.1, 0.1, 0.1])
     distance_camera_object = rospy.get_param('~distance_camera_object', 0.2)
@@ -36,15 +37,25 @@ def init():
     reach = rospy.get_param('~reach', 0.85)
     simulation = rospy.get_param('~simulation', True)
     test = rospy.get_param('~test', True)
-    turntable_pos = rospy.get_param('~turntable_pos', photobox_pos[:2] + [photobox_pos[2] + 0.02])
+    turntable_pos = rospy.get_param('~turntable_pos', photobox_pos[:2] + [photobox_pos[2] + 0.05])
     turntable_radius = rospy.get_param('~turntable_radius', 0.2)
     wall_thickness = rospy.get_param('~wall_thickness', 0.04)
 
-    marker_pub = rospy.Publisher('/visualization_marker', Marker, queue_size=1, latch=True)
+    marker_pub = rospy.Publisher('visualization_marker', Marker, queue_size=1, latch=True)
 
     move_group = MoveGroupCommander('manipulator')
     move_group.set_max_acceleration_scaling_factor(1.0 if simulation else max_velocity)
     move_group.set_max_velocity_scaling_factor(1.0 if simulation else max_velocity)
+
+    #min_x, min_y = -photobox_size[0] / 2, photobox_pos[1] - photobox_size[1] / 2
+    #max_x, max_y = -min_x, 0.5
+    #move_group.set_workspace([min_x, min_y, max_x, max_y])
+
+    planner_ids = move_group.get_interface_description().planner_ids
+    if 'manipulator[PRMstarkConfigDefault]' in planner_ids:
+        move_group.set_planner_id('PRMstarkConfigDefault')
+    elif 'manipulator[RRTstarkConfigDefault]' in planner_ids:
+        move_group.set_planner_id('RRTstarkConfigDefault')
 
     robot = RobotCommander()
 
@@ -52,15 +63,17 @@ def init():
 
     try:
         turntable = load_source('st_control', RosPack().get_path('iai_scanning_table') + '/scripts/iai_scanning_table/st_control.py').ElmoUdp()
-        turntable.configure()
-        turntable.reset_encoder()
+        if table.check_device():
+            turntable.configure()
+            turntable.reset_encoder()
+            turntable.start_controller()
     except:
         turntable = None
 
     if simulation or test:
+        move_group.set_planner_id('')
         move_home()
-        rospy.Subscriber('tf', TFMessage, send_turntable_tf, tf.TransformBroadcaster())
-    elif turntable is None or not turntable.start_controller():
+    elif turntable is None:
         sys.exit('Could not connect to turntable.')
     elif not camera.init(rospy.get_param('~output_directory', 'out')):
         sys.exit('Could not initialize camera.')
@@ -112,11 +125,27 @@ def init():
     scene.remove_attached_object(eef_link, 'camera')
     scene.remove_world_object('camera')
 
-    ps.pose.position.x = camera_pos[0] + camera_size[0] / 2
     ps.pose.position.y = camera_pos[1]
     ps.pose.position.z = camera_pos[2]
 
-    scene.attach_box(eef_link, 'camera', ps, camera_size)
+    if camera_mesh:
+        ps.pose.position.x = camera_pos[0]
+
+        quaternion = tf.transformations.quaternion_from_euler(math.radians(camera_orientation[0]), math.radians(camera_orientation[1]), math.radians(camera_orientation[2]))
+        ps.pose.orientation.x = quaternion[0]
+        ps.pose.orientation.y = quaternion[1]
+        ps.pose.orientation.z = quaternion[2]
+        ps.pose.orientation.w = quaternion[3]
+
+        scene.attach_mesh(eef_link, 'camera', ps, os.path.expanduser(camera_mesh), camera_size)
+
+        vertices = scene.get_attached_objects(['camera'])['camera'].object.meshes[0].vertices
+        camera_size[0] = max(vertice.x for vertice in vertices) - min(vertice.x for vertice in vertices)
+        camera_size[1] = max(vertice.y for vertice in vertices) - min(vertice.y for vertice in vertices)
+        camera_size[2] = max(vertice.z for vertice in vertices) - min(vertice.z for vertice in vertices)
+    else:
+        ps.pose.position.x = camera_pos[0] + camera_size[0] / 2
+        scene.attach_box(eef_link, 'camera', ps, camera_size)
 
 def show_marker(pose, lifetime_secs=0.0):
     marker = Marker()
@@ -130,12 +159,6 @@ def show_marker(pose, lifetime_secs=0.0):
     marker.lifetime.secs = lifetime_secs
     marker_pub.publish(marker)
 
-def send_turntable_tf(msg, tb):
-    try:
-        tb.sendTransform(turntable_pos, (0, 0, 0, 1), rospy.Time(), 'turntable', 'world')
-    except:
-        pass
-
 def move_home():
     result = move_group.go([0, math.radians(-90), 0, math.radians(-90), 0, 0], wait=True)
     move_group.stop()
@@ -148,34 +171,38 @@ def move_joint(joint, goal, radians=False):
     move_group.stop()
     return result
 
-def move_to(position, orientation=None, face=None):
+def get_orientation_from_pos_to_object(position):
+    angle_y = math.atan2(position.z - turntable_pos[2], position.y - turntable_pos[1] - camera_pos[2])
+    angle_z = math.atan2(turntable_pos[1] - position.y, turntable_pos[0] - position.x - camera_pos[1])
+    quaternion = tf.transformations.quaternion_from_euler(0.0, angle_y, angle_z)
+    orientation = Quaternion()
+    orientation.x = quaternion[0]
+    orientation.y = quaternion[1]
+    orientation.z = quaternion[2]
+    orientation.w = quaternion[3]
+    return orientation
+
+def move_to(position, x_tolerance=0.1):
     pose = Pose()
     pose.position.x = position[0]
     pose.position.y = position[1]
     pose.position.z = position[2]
-
-    if orientation:
-        pose.orientation.x = orientation[0]
-        pose.orientation.y = orientation[1]
-        pose.orientation.z = orientation[2]
-        pose.orientation.w = orientation[3]
-    else:
-        if face == 'top':
-            angle_y = math.atan2(pose.position.z - turntable_pos[2] - object_size[2], pose.position.y - turntable_pos[1] - camera_pos[2])
-        elif face == 'bottom':
-            angle_y = math.atan2(pose.position.z - turntable_pos[2], pose.position.y - turntable_pos[1] - camera_pos[2])
-        else: # center
-            angle_y = math.atan2(pose.position.z - turntable_pos[2] - object_size[2] / 2, pose.position.y - turntable_pos[1] - camera_pos[2])
-
-        angle_z = math.atan2(turntable_pos[1] - pose.position.y, turntable_pos[0] - pose.position.x - camera_pos[1])
-        quaternion = tf.transformations.quaternion_from_euler(0.0, angle_y, angle_z)
-        pose.orientation.x = quaternion[0]
-        pose.orientation.y = quaternion[1]
-        pose.orientation.z = quaternion[2]
-        pose.orientation.w = quaternion[3]
-
+    pose.orientation = get_orientation_from_pos_to_object(pose.position)
     show_marker(pose)
-    move_group.set_pose_target(pose)
+
+    poses = [pose]
+
+    if x_tolerance > 0:
+        for x in numpy.arange(-x_tolerance, x_tolerance + 0.01, 0.01):
+            p = Pose()
+            p.position.x = pose.position.x + x
+            p.position.y = pose.position.y
+            p.position.z = pose.position.z
+            p.orientation = get_orientation_from_pos_to_object(p.position)
+            poses.append(p)
+        poses.sort(key=lambda pose: abs(pose.position.x))
+
+    move_group.set_pose_targets(poses)
     result = move_group.go(wait=True)
     move_group.stop()
     move_group.clear_pose_targets()
@@ -191,7 +218,7 @@ def set_turntable_deg(deg, speed=30):
 
 def create_arm_positions(n=15):
     positions = []
-    distance = max(camera_size[:2]) + distance_camera_object
+    distance = max(camera_size) + distance_camera_object
     div = max(object_size[:2]) / 2 + object_size[2] + math.pi * 2 * distance_camera_object / 4
 
     min_y = turntable_pos[1]
@@ -222,22 +249,20 @@ if __name__ == '__main__':
 
     positions = create_arm_positions(num_positions)
     print('Number positions: {}'.format(len(positions)))
+
     for position in positions:
         print('Position: {}'.format(position))
-        for face in ['top', 'center', 'bottom']:
-            print('Face: {}'.format(face))
-            if move_to(position, face=face) and not test:
-                for i in range(num_spins):
-                    deg = 360 * i / num_spins
-                    print('Turntable angle: {} degrees'.format(deg))
-                    set_turntable_deg(deg)
+        if move_to(position) and not test:
+            for i in range(num_spins):
+                deg = 360 * i / num_spins
+                print('Turntable angle: {} degrees'.format(deg))
+                set_turntable_deg(deg)
+                if not simulation:
+                    print('Capturing photo')
+                    file = camera.capture()
 
-                    if not simulation:
-                        print('Capturing photo')
-                        file = camera.capture()
-
-                        if file is not None:
-                            print('preview: ' + file);
+                    if file is not None:
+                        print('preview: ' + file);
         print('progress: {}'.format(int(float(positions.index(position) + 1) / len(positions) * 100)))
         rospy.sleep(1)
     camera.exit()

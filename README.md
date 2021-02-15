@@ -168,3 +168,13 @@ While the default ports for HTTP and WebSocket are set to 8000 and 8080, the opt
 $ roscd iai_mab_control
 $ app/server.py --http_port 9000 --socket_port 9090
 ```
+
+## Calibration
+
+The photobox and turntables size and position can be determined using the calibration script. The user will be asked to attach the [calibration tool](https://github.com/code-iai/iai_mab_control/blob/devel/assets/calibration_tool.stl) to the robot arm and move the tip of the calibration tool to given [points](https://github.com/code-iai/iai_mab_control/blob/devel/assets/calibration.png). The sizes and positions are being calculated and printed by the calibration script.
+
+The calibration script can be started using _rosrun_.
+
+```
+$ rosrun iai_mab_control calibration.py
+```

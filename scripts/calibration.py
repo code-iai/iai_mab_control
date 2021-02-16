@@ -64,8 +64,8 @@ if __name__ == '__main__':
     F = get_position().point
 
     photobox_size = [
-        get_distance(A, B),
-        get_distance(B, C) * 2 - 0.1, # make box width smaller by 0.1 to keep more distance to the walls
+        get_distance(A, B) - 0.1, # make box width smaller by 0.1 to keep more distance to the walls
+        get_distance(B, C) * 2,
         get_distance(B, D) * 2]
     photobox_pos = [
         (A.x + B.x) / 2,
@@ -73,11 +73,11 @@ if __name__ == '__main__':
         A.z + 0.05] # lift box a little bit to keep more distance to box bottom
 
     turntable_radius = get_distance(E, F)
-    turntable_pos = point_to_array(E)
+    turntable_pos = [E.x, E.y, E.z + 0.05] # lift turntable to match lifting of box
 
     print('\nReplace the appropriate values in {} with the following:\n'.format(os.path.abspath(__file__ + '/../../app/settings/general.json')))
-    print('photobox_size: {}'.format(photobox_size))
     print('photobox_pos: {}'.format(photobox_pos))
-    print('turntable_radius: {}'.format(turntable_radius))
+    print('photobox_size: {}'.format(photobox_size))
     print('turntable_pos: {}'.format(turntable_pos))
+    print('turntable_radius: {}'.format(turntable_radius))
 

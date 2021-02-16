@@ -248,7 +248,7 @@ def monitor(process, master, slave):
                         process_model_preview = base64.b64encode(f.read()).decode('utf-8')
 
                     broadcast('PREVIEW', { 'data': process_model_preview })
-                else:
+                elif not line.startswith('Pos = '): # do not print turntable position
                     process_model_log += line
                     broadcast('CONSOLE', { 'type': 'model', 'text': line })
 

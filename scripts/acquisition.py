@@ -62,12 +62,14 @@ def init():
     scene = PlanningSceneInterface(synchronous=True)
 
     try:
-        turntable = load_source('st_control', RosPack().get_path('iai_scanning_table') + '/scripts/iai_scanning_table/st_control.py').ElmoUdp()
-        if table.check_device():
+        st_control = load_source('st_control', RosPack().get_path('iai_scanning_table') + '/scripts/iai_scanning_table/st_control.py')
+        turntable = st_control.ElmoUdp()
+        if turntable.check_device():
             turntable.configure()
             turntable.reset_encoder()
             turntable.start_controller()
-    except:
+    except Exception as e:
+        print(e)
         turntable = None
 
     if simulation or test:
@@ -117,13 +119,35 @@ def init():
     ps.pose.position.z = turntable_pos[2] + object_size[2] / 2
     scene.add_cylinder('object', ps, object_size[2], max(object_size[:2]) / 2)
 
+    # add cable mounts
+    scene.remove_attached_object('upper_arm_link', 'upper_arm_cable_mount')
+    scene.remove_attached_object('forearm_link', 'forearm_cable_mount')
+    scene.remove_world_object('upper_arm_cable_mount')
+    scene.remove_world_object('forearm_cable_mount')
+
+    size = [0.08, 0.08, 0.08]
+
+    ps.header.frame_id = 'upper_arm_link'
+    ps.pose.position.x = -0.13
+    ps.pose.position.y = -0.095
+    ps.pose.position.z = 0.135
+    scene.attach_box(ps.header.frame_id, 'upper_arm_cable_mount', ps, size)
+
+    ps.header.frame_id = 'forearm_link'
+    ps.pose.position.x = -0.275
+    ps.pose.position.y = -0.08
+    ps.pose.position.z = 0.02
+    scene.attach_box(ps.header.frame_id, 'forearm_cable_mount', ps, size)
+
     # add camera
     eef_link = move_group.get_end_effector_link()
     ps = PoseStamped()
     ps.header.frame_id = eef_link
 
-    scene.remove_attached_object(eef_link, 'camera')
-    scene.remove_world_object('camera')
+    scene.remove_attached_object(eef_link, 'camera_0')
+    scene.remove_attached_object(eef_link, 'camera_1')
+    scene.remove_world_object('camera_0')
+    scene.remove_world_object('camera_1')
 
     ps.pose.position.y = camera_pos[1]
     ps.pose.position.z = camera_pos[2]
@@ -137,15 +161,16 @@ def init():
         ps.pose.orientation.z = quaternion[2]
         ps.pose.orientation.w = quaternion[3]
 
-        scene.attach_mesh(eef_link, 'camera', ps, os.path.expanduser(camera_mesh), camera_size)
+        scene.attach_mesh(eef_link, 'camera_0', ps, os.path.expanduser(camera_mesh), camera_size)
+        scene.attach_mesh(eef_link, 'camera_1', ps, os.path.expanduser(camera_mesh), numpy.array(camera_size) * 1.5)
 
-        vertices = scene.get_attached_objects(['camera'])['camera'].object.meshes[0].vertices
+        vertices = scene.get_attached_objects(['camera_1'])['camera_1'].object.meshes[0].vertices
         camera_size[0] = max(vertice.x for vertice in vertices) - min(vertice.x for vertice in vertices)
         camera_size[1] = max(vertice.y for vertice in vertices) - min(vertice.y for vertice in vertices)
         camera_size[2] = max(vertice.z for vertice in vertices) - min(vertice.z for vertice in vertices)
     else:
         ps.pose.position.x = camera_pos[0] + camera_size[0] / 2
-        scene.attach_box(eef_link, 'camera', ps, camera_size)
+        scene.attach_box(eef_link, 'camera_0', ps, camera_size)
 
 def show_marker(pose, lifetime_secs=0.0):
     marker = Marker()
@@ -182,7 +207,7 @@ def get_orientation_from_pos_to_object(position):
     orientation.w = quaternion[3]
     return orientation
 
-def move_to(position, x_tolerance=0.1):
+def move_to(position, x_tolerance=0.2):
     pose = Pose()
     pose.position.x = position[0]
     pose.position.y = position[1]

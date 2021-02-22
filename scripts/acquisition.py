@@ -19,7 +19,7 @@ import tf
 def init():
     global marker_pub
     global move_group, turntable
-    global camera_mesh, camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, reach, simulation, test, turntable_pos
+    global camera_mesh, camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, photobox_size, reach, simulation, test, turntable_pos
 
     rospy.init_node('acquisition')
 
@@ -47,15 +47,12 @@ def init():
     move_group.set_max_acceleration_scaling_factor(1.0 if simulation else max_velocity)
     move_group.set_max_velocity_scaling_factor(1.0 if simulation else max_velocity)
 
-    #min_x, min_y = -photobox_size[0] / 2, photobox_pos[1] - photobox_size[1] / 2
-    #max_x, max_y = -min_x, 0.5
-    #move_group.set_workspace([min_x, min_y, max_x, max_y])
-
-    planner_ids = move_group.get_interface_description().planner_ids
-    if 'manipulator[PRMstarkConfigDefault]' in planner_ids:
-        move_group.set_planner_id('PRMstarkConfigDefault')
-    elif 'manipulator[RRTstarkConfigDefault]' in planner_ids:
-        move_group.set_planner_id('RRTstarkConfigDefault')
+    if not simulation:
+        planner_ids = move_group.get_interface_description().planner_ids
+        if 'manipulator[PRMstarkConfigDefault]' in planner_ids:
+            move_group.set_planner_id('PRMstarkConfigDefault')
+        elif 'manipulator[RRTstarkConfigDefault]' in planner_ids:
+            move_group.set_planner_id('RRTstarkConfigDefault')
 
     robot = RobotCommander()
 
@@ -72,8 +69,7 @@ def init():
         print(e)
         turntable = None
 
-    if simulation or test:
-        move_group.set_planner_id('')
+    if simulation:
         move_home()
     elif turntable is None:
         sys.exit('Could not connect to turntable.')
@@ -162,9 +158,10 @@ def init():
         ps.pose.orientation.w = quaternion[3]
 
         scene.attach_mesh(eef_link, 'camera_0', ps, os.path.expanduser(camera_mesh), camera_size)
-        scene.attach_mesh(eef_link, 'camera_1', ps, os.path.expanduser(camera_mesh), numpy.array(camera_size) * 1.5)
+        if not simulation:
+            scene.attach_mesh(eef_link, 'camera_1', ps, os.path.expanduser(camera_mesh), numpy.array(camera_size) * 1.5)
 
-        vertices = scene.get_attached_objects(['camera_1'])['camera_1'].object.meshes[0].vertices
+        vertices = scene.get_attached_objects(['camera_0'])['camera_0'].object.meshes[0].vertices
         camera_size[0] = max(vertice.x for vertice in vertices) - min(vertice.x for vertice in vertices)
         camera_size[1] = max(vertice.y for vertice in vertices) - min(vertice.y for vertice in vertices)
         camera_size[2] = max(vertice.z for vertice in vertices) - min(vertice.z for vertice in vertices)
@@ -196,9 +193,9 @@ def move_joint(joint, goal, radians=False):
     move_group.stop()
     return result
 
-def get_orientation_from_pos_to_object(position):
-    angle_y = math.atan2(position.z - turntable_pos[2], position.y - turntable_pos[1] - camera_pos[2])
-    angle_z = math.atan2(turntable_pos[1] - position.y, turntable_pos[0] - position.x - camera_pos[1])
+def get_orientation_from_pos_to_pos(pos_from, pos_to, y_offset=0.0):
+    angle_y = math.atan2(pos_from.z - pos_to[2], pos_from.y - pos_to[1] - y_offset - camera_pos[2])
+    angle_z = math.atan2(pos_to[1] - y_offset - pos_from.y, pos_to[0] - pos_from.x - camera_pos[1])
     quaternion = tf.transformations.quaternion_from_euler(0.0, angle_y, angle_z)
     orientation = Quaternion()
     orientation.x = quaternion[0]
@@ -212,7 +209,7 @@ def move_to(position, x_tolerance=0.2):
     pose.position.x = position[0]
     pose.position.y = position[1]
     pose.position.z = position[2]
-    pose.orientation = get_orientation_from_pos_to_object(pose.position)
+    pose.orientation = get_orientation_from_pos_to_pos(pose.position, turntable_pos, max(camera_size) / 2)
     show_marker(pose)
 
     poses = [pose]
@@ -223,7 +220,7 @@ def move_to(position, x_tolerance=0.2):
             p.position.x = pose.position.x + x
             p.position.y = pose.position.y
             p.position.z = pose.position.z
-            p.orientation = get_orientation_from_pos_to_object(p.position)
+            p.orientation = get_orientation_from_pos_to_pos(p.position, turntable_pos, max(camera_size) / 2)
             poses.append(p)
         poses.sort(key=lambda pose: abs(pose.position.x))
 
@@ -277,7 +274,7 @@ if __name__ == '__main__':
 
     for position in positions:
         print('Position: {}'.format(position))
-        if move_to(position) and not test:
+        if move_to(position, photobox_size[0] / 2 - 0.10) and not test:
             for i in range(num_spins):
                 deg = 360 * i / num_spins
                 print('Turntable angle: {} degrees'.format(deg))

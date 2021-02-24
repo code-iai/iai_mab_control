@@ -103,7 +103,8 @@ The following optional parameters can be set by adding them to the _rosrun_ comm
 | camera_orientation | The camera mesh rotation around the x, y and z axes in degrees. | _camera_orientation:='[90, 0, 90]' |
 | camera_pos | Position of the attached object relative to the attachment link in meters. | _camera_pos:='[0.0, 0.0, 0.0]' |
 | camera_size | Length, width and height of the attached camera in meters. If a camera mesh is used it describes the scale factor for width, length and height. | _camera_size:='[0.1, 0.1, 0.1]' |
-| distance_camera_object | The distance between the camera and the object at all positions in meters. | _distance_camera_object:=0.2 |
+| min_distance | The minimum distance between the camera and the object at all positions in meters. | _min_distance:=0.2 |
+| max_distance | The maximum distance between the camera and the object at all positions in meters. | _max_distance:=0.2 |
 | max_velocity | The maximum velocity the robot arm is moving at. | _max_velocity:=0.1 |
 | num_positions | Number of positions around the object that the robot should move to. | _num_positions:=15 |
 | num_spins | Number of spins the turntable should do for each position of the robot. | _num_spins:=8 |

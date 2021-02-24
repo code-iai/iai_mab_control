@@ -418,7 +418,7 @@
 					return;
 				}
 
-				send('START', { type: 'model', workingDir: workingDir, '_distance_camera_object': cameraDistance, '_num_positions': numPositions, '_num_spins': numSpins, '_object_size': '[' + objectWidth + ', ' + objectLength + ', ' + objectHeight + ']', '_simulation': document.querySelector('#simulation').checked, '_test': this.id == 'test' });
+				send('START', { type: 'model', workingDir: workingDir, '_min_distance': cameraDistance, '_num_positions': numPositions, '_num_spins': numSpins, '_object_size': '[' + objectWidth + ', ' + objectLength + ', ' + objectHeight + ']', '_simulation': document.querySelector('#simulation').checked, '_test': this.id == 'test' });
 			});
 		});
 

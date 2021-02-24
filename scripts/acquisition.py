@@ -17,9 +17,9 @@ import sys
 import tf
 
 def init():
-    global marker_pub, marker_array_pub
+    global marker_array_pub, marker_pub, tf_broadcaster, tf_listener
     global move_group, turntable
-    global camera_mesh, camera_pos, camera_size, distance_camera_object, num_positions, num_spins, object_size, photobox_pos, photobox_size, reach, simulation, test, turntable_pos
+    global camera_mesh, camera_pos, camera_size, min_distance, max_distance, num_positions, num_spins, object_size, photobox_pos, photobox_size, reach, simulation, test, turntable_pos
 
     rospy.init_node('acquisition')
 
@@ -27,7 +27,8 @@ def init():
     camera_orientation = rospy.get_param('~camera_orientation', None)
     camera_pos = rospy.get_param('~camera_pos', [0.0, 0.0, 0.0])
     camera_size = rospy.get_param('~camera_size', [0.1, 0.1, 0.1])
-    distance_camera_object = rospy.get_param('~distance_camera_object', 0.2)
+    min_distance = rospy.get_param('~min_distance', 0.2)
+    max_distance = rospy.get_param('~max_distance', min_distance)
     max_velocity = rospy.get_param('~max_velocity', 0.1)
     num_positions = rospy.get_param('~num_positions', 15)
     num_spins = rospy.get_param('~num_spins', 8)
@@ -41,13 +42,14 @@ def init():
     turntable_radius = rospy.get_param('~turntable_radius', 0.2)
     wall_thickness = rospy.get_param('~wall_thickness', 0.04)
 
-    marker_pub = rospy.Publisher('visualization_marker', Marker, queue_size=1, latch=True)
     marker_array_pub = rospy.Publisher('visualization_marker_array', MarkerArray, queue_size=1, latch=True)
+    marker_pub = rospy.Publisher('visualization_marker', Marker, queue_size=1, latch=True)
+    tf_broadcaster = tf.TransformBroadcaster()
+    tf_listener = tf.TransformListener()
 
     move_group = MoveGroupCommander('manipulator')
     move_group.set_max_acceleration_scaling_factor(1.0 if simulation else max_velocity)
     move_group.set_max_velocity_scaling_factor(1.0 if simulation else max_velocity)
-    #move_group.set_planning_time(30.0)
 
     if not simulation:
         planner_ids = move_group.get_interface_description().planner_ids
@@ -213,9 +215,9 @@ def move_joint(joint, goal, radians=False):
     move_group.stop()
     return result
 
-def get_orientation_from_pos_to_pos(pos_from, pos_to, y_offset=0.0):
-    angle_y = math.atan2(pos_from.z - pos_to[2], pos_from.y - pos_to[1] - y_offset - camera_pos[2])
-    angle_z = math.atan2(pos_to[1] - y_offset - pos_from.y, pos_to[0] - pos_from.x - camera_pos[1])
+def get_orientation_from_pos_to_pos(pos_from, pos_to):
+    angle_y = math.atan2(pos_from[2] - pos_to[2], pos_from[1] - pos_to[1])
+    angle_z = math.atan2(pos_to[1]- pos_from[1], pos_to[0] - pos_from[0])
     quaternion = tf.transformations.quaternion_from_euler(0.0, angle_y, angle_z)
     orientation = Quaternion()
     orientation.x = quaternion[0]
@@ -231,7 +233,7 @@ def move_to(positions, x_tolerance=0.2):
     pose.position.x = positions[0][0]
     pose.position.y = positions[0][1]
     pose.position.z = positions[0][2]
-    pose.orientation = get_orientation_from_pos_to_pos(pose.position, turntable_pos, max(camera_size) / 1.5)
+    pose.orientation = get_orientation_from_pos_to_pos(positions[0], turntable_pos)
     poses.append(pose)
 
     if x_tolerance > 0:
@@ -242,18 +244,33 @@ def move_to(positions, x_tolerance=0.2):
                 pose.position.x = photobox_pos[0] + x
                 pose.position.y = position[1]
                 pose.position.z = position[2]
-                pose.orientation = get_orientation_from_pos_to_pos(pose.position, turntable_pos, max(camera_size) / 1.5)
+                pose.orientation = get_orientation_from_pos_to_pos([pose.position.x, pose.position.y, pose.position.z], turntable_pos)
                 _poses.append(pose)
             _poses.sort(key=lambda pose: abs(pose.position.x))
             poses += _poses
 
     show_markers(poses)
-    show_marker(poses[0])
+
+    # move poses to position of camera lense
+    time = rospy.Time.now()
+    ps = PoseStamped()
+    for i, pose in enumerate(poses):
+        try:
+            ps.header.frame_id = 'pose_{}_{}'.format(time, i)
+            tf_broadcaster.sendTransform([pose.position.x, pose.position.y, pose.position.z], [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w], rospy.Time.now(), ps.header.frame_id, 'world')
+            tf_listener.waitForTransform('world', ps.header.frame_id, rospy.Time(), rospy.Duration(5.0))
+            ps.pose.position.x = -numpy.median(camera_size)
+            ps.pose.position.z = -max(camera_size) / 2
+            pose.position = tf_listener.transformPose('world', ps).pose.position
+        except Exception as error:
+            print(error)
+            poses.remove(pose)
 
     move_group.set_pose_targets(poses)
     result = move_group.go(wait=True)
     move_group.stop()
     move_group.clear_pose_targets()
+
     return result
 
 def set_turntable_deg(deg, wait=True):
@@ -272,10 +289,9 @@ def arange(start, stop, step):
     else:
         return numpy.arange(start, stop + step, step)
 
-def create_arm_positions(n=15, distance_tolerance=0.0):
+def create_arm_positions(n=15):
     positions = []
-    distance = max(camera_size) + distance_camera_object
-    div = max(object_size[:2]) / 2 + object_size[2] + math.pi * 2 * distance_camera_object / 4
+    div = max(object_size[:2]) / 2 + object_size[2] + math.pi * 2 * min_distance / 4
 
     min_y = turntable_pos[1]
     max_y = turntable_pos[1] + max(object_size[:2]) / 2
@@ -284,28 +300,28 @@ def create_arm_positions(n=15, distance_tolerance=0.0):
 
     for y in numpy.linspace(min_y, max_y, round(n / div * max(object_size[:2]) / 2)):
         _positions = []
-        for z in arange(max_z + distance, max_z + distance + distance_tolerance, 0.1):
-            position = [turntable_pos[0] - camera_pos[1], y, z]
-            if numpy.linalg.norm(position) <= reach:
+        for z in arange(max_z + min_distance, max_z + max_distance, 0.1):
+            position = [turntable_pos[0], y, z]
+            if numpy.linalg.norm(position) <= reach + max(camera_size) / 2:
                 _positions.append(position)
         if len(_positions):
             positions.append(_positions)
 
-    num = round(n / div * math.pi * 2 * distance_camera_object / 4)
+    num = round(n / div * math.pi * 2 * min_distance / 4)
     for i in range(int(num)):
         _positions = []
-        for d in arange(distance, distance + distance_tolerance, 0.1):
-            position = [turntable_pos[0] - camera_pos[1], max_y + math.sin(math.pi / 2 / num * i) * d, max_z + math.cos(math.pi / 2 / num * i) * d]
-            if numpy.linalg.norm(position) <= reach:
+        for distance in arange(min_distance, max_distance, 0.1):
+            position = [turntable_pos[0], max_y + math.sin(math.pi / 2 / num * i) * distance, max_z + math.cos(math.pi / 2 / num * i) * distance]
+            if numpy.linalg.norm(position) <= reach + max(camera_size) / 2:
                 _positions.append(position)
         if len(_positions):
             positions.append(_positions)
 
     for z in numpy.linspace(max_z, min_z, round(n / div * object_size[2])):
         _positions = []
-        for y in arange(max_y + distance, max_y + distance + distance_tolerance, 0.1):
-            position = [turntable_pos[0] - camera_pos[1], y, z]
-            if numpy.linalg.norm(position) <= reach:
+        for y in arange(max_y + min_distance, max_y + max_distance, 0.1):
+            position = [turntable_pos[0], y, z]
+            if numpy.linalg.norm(position) <= reach + max(camera_size) / 2:
                 _positions.append(position)
         if len(_positions):
             positions.append(_positions)
@@ -315,7 +331,7 @@ def create_arm_positions(n=15, distance_tolerance=0.0):
 if __name__ == '__main__':
     init()
 
-    positions = create_arm_positions(num_positions, 0.0)
+    positions = create_arm_positions(num_positions)
     print('Number positions: {}'.format(len(positions)))
 
     for _positions in positions:

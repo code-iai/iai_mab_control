@@ -117,17 +117,21 @@ class WebSocketHandler(WebSocket):
                     settings = json.loads(f.read())
 
                 msg['workingDir'] = os.path.join(app_dir, '..', 'out', msg['workingDir'])
-                settings['meshroom_dir'] = settings['meshroom_dir']
+                settings['meshroom_dir'] = os.path.expanduser(settings['meshroom_dir'])
+
+                tmp_dir = os.path.join(settings_dir, 'meshroom', 'tmp')
+                if not os.path.exists(tmp_dir):
+                    os.mkdir(tmp_dir)
 
                 with open(os.path.join(settings_dir, 'meshroom', 'pipeline.mg')) as f:
                     pipeline = json.loads(f.read())
 
-                with open(os.path.join(settings_dir, 'meshroom', 'pipeline.mg'), 'w') as f:
+                with open(os.path.join(tmp_dir, 'pipeline.mg'), 'w+') as f:
                     pipeline['graph']['CameraInit_1']['inputs']['sensorDatabase'] = os.path.join(settings['meshroom_dir'], 'aliceVision', 'share', 'aliceVision', 'cameraSensors.db')
                     pipeline['graph']['ImageMatching_1']['inputs']['tree'] = os.path.join(settings['meshroom_dir'], 'aliceVision', 'share', 'aliceVision', 'vlfeat_K80L3.SIFT.tree')
                     f.write(json.dumps(pipeline))
 
-                with open(os.path.join(settings_dir, 'meshroom', 'overrides.json'), 'w+') as f:
+                with open(os.path.join(tmp_dir, 'overrides.json'), 'w+') as f:
                     overrides = {
                         'DepthMap_1': {
                             'downscale': int(msg['depthMapDownscaling'])
@@ -155,8 +159,8 @@ class WebSocketHandler(WebSocket):
                     os.path.join(settings['meshroom_dir'], 'meshroom_photogrammetry'),
                     '--input', os.path.join(msg['workingDir'], 'images'),
                     '--output', os.path.join(msg['workingDir'], 'model'),
-                    '--pipeline', os.path.join(settings_dir, 'meshroom', 'pipeline.mg'),
-                    '--overrides', os.path.join(settings_dir, 'meshroom', 'overrides.json')
+                    '--pipeline', os.path.join(tmp_dir, 'pipeline.mg'),
+                    '--overrides', os.path.join(tmp_dir, 'overrides.json')
                 ], stdout=stdout, stderr=stderr, env=env)
 
                 monitor(master, slave)

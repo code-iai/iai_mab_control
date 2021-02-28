@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Model Acquisition Bot</title>
+		<link rel="icon" href="/favicon.ico">
+		<link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/assets/css/all.min.css">
+		<link rel="stylesheet" href="/assets/css/style.css">
+	</head>
+	<body>
+		<main class="min-vh-100 container py-3">
+			<h1 class="mb-5">Model Acquisition</h1>
+			<section id="connect">
+				<i class="fas fa-spinner fa-spin me-2"></i>Connecting
+			</section>
+			<section class="d-none" id="authenticate">
+				<form>
+					<div class="form-floating mb-3">
+						<input type="password" class="form-control" id="password" placeholder="Password">
+						<label for="password">Password</label>
+					</div>
+					<button type="submit" class="btn btn-primary">Authenticate</button>
+				</form>
+			</section>
+			<section class="d-none" id="app">
+				<div id="settings">
+					<div class="bg-light rounded border p-3 mb-5">
+						<div class="row g-3">
+							<div class="col">
+								<div class="form-floating">
+									<select class="form-select" id="savedSettings"></select>
+									<label for="savedSettings">Saved settings</label>
+								</div>
+							</div>
+							<div class="col-auto">
+								<button type="button" class="btn btn-primary h-100 me-3" id="load">Load</button><button type="button" class="btn btn-danger h-100" id="delete">Delete</button>
+							</div>
+						</div>
+						<hr>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="minDistance" placeholder="Minimum camera distance to object in meters">
+							<label for="minDistance">Minimum camera distance to object in meters</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="maxDistance" placeholder="Maximum camera distance to object in meters">
+							<label for="maxDistance">Maximum camera distance to object in meters</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="number" min="1" class="form-control" id="numPositions" placeholder="Number of robot positions">
+							<label for="numPositions">Number of robot positions</label>
+						</div>
+						<div class="form-floating">
+							<input type="number" min="1" class="form-control" id="numSpins" placeholder="Number of turntable spins">
+							<label for="numSpins">Number of turntable spins</label>
+						</div>
+						<hr>
+						<form>
+							<div class="row g-3">
+								<div class="col">
+									<div class="form-floating">
+										<input type="text" class="form-control" id="settingsName" placeholder="Settings name" required>
+										<label for="settingsName">Settings name</label>
+									</div>
+								</div>
+								<div class="col-auto">
+									<button type="submit" class="btn btn-primary h-100">Save</button>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="form-floating mb-3">
+						<input type="text" class="form-control" id="workingDir" placeholder="Working directory" value="">
+						<label for="workingDir">Working directory</label>
+					</div>
+					<div class="form-floating mb-3">
+						<input type="text" class="form-control" id="objectWidth" placeholder="Object width in meters">
+						<label for="objectWidth">Object width in meters</label>
+					</div>
+					<div class="form-floating mb-3">
+						<input type="text" class="form-control" id="objectLength" placeholder="Object length in meters">
+						<label for="objectLength">Object length in meters</label>
+					</div>
+					<div class="form-floating mb-3">
+						<input type="text" class="form-control" id="objectHeight" placeholder="Object height in meters">
+						<label for="objectHeight">Object height in meters</label>
+					</div>
+					<div class="form-check mb-3">
+						<input type="checkbox" class="form-check-input" id="simulation">
+						<label class="form-check-label" for="simulation">Simulation</label>
+					</div>
+					<button class="btn btn-secondary me-3" id="test">Test</button><button class="btn btn-primary" id="start">Start</button>
+				</div>
+				<div class="d-none" id="process">
+					<textarea class="form-control bg-dark text-light mb-3" rows="10"></textarea>
+					<div class="progress mb-3" style="height: 40px;">
+						<div class="progress-bar progress-bar-striped progress-bar-animated px-2 lead"></div>
+					</div>
+					<div class="accordion mb-3" id="accordion">
+						<div class="accordion-item">
+							<h2 class="accordion-header">
+								<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#livePreview">
+									Live preview
+								</button>
+							</h2>
+							<div id="livePreview" class="accordion-collapse collapse show" data-bs-parent="#accordion">
+								<div class="accordion-body">
+									<img class="mw-100">
+								</div>
+							</div>
+						</div>
+					</div>
+					<button class="btn btn-primary" id="close">Close</button><button class="btn btn-danger" id="stop">Stop</button>
+				</div>
+			</section>
+		</main>
+		<footer class="footer container-fluid bg-light py-3">
+			<a target="_blank" href="https://github.com/code-iai/iai_mab_control"><i class="fab fa-github fa-2x fa-fw"></i></a>
+		</footer>
+		<script src="/assets/js/bootstrap.bundle.min.js"></script>
+		<script src="/assets/js/modal.js"></script>
+		<script>
+		const connect = document.querySelector('#connect');
+		const authenticate = document.querySelector('#authenticate');
+		const settings = document.querySelector('#settings');
+		const process = document.querySelector('#process');
+
+		var connection;
+		var saved;
+
+		function send(op, msg) {
+			connection.send(JSON.stringify({ op: op, msg: msg }));
+		}
+
+		function updateSettings() {
+			const select = settings.querySelector('#savedSettings');
+			select.innerHTML = '<option></option>';
+
+			Object.keys(saved).forEach(function(name) {
+				const option = document.createElement('option');
+				option.innerText = name;
+				select.appendChild(option);
+			});
+		}
+
+		function updateProgressBar(progress) {
+			const bar = process.querySelector('.progress-bar');
+			bar.style.minWidth = progress + '%';
+			bar.innerText = progress + '%';
+		}
+
+		const xhr = new XMLHttpRequest();
+		xhr.open('POST', '/init', true);
+
+		xhr.onreadystatechange = function() {
+			if (this.readyState == XMLHttpRequest.DONE) {
+				if (this.status == 200) {
+					const response = xhr.responseText.split(',');
+					connection = new WebSocket('ws://' + location.hostname + ':' + response[0]);
+
+					connection.onopen = function() {
+						connect.classList.add('d-none');
+
+						if (response[1] == 't') {
+							authenticate.classList.remove('d-none');
+						} else {
+							send('AUTH', '');
+						}
+					}
+
+					connection.onclose = function(e) {
+						if (connect.classList.contains('d-none')) {
+							modal('Error', 'Connection lost. Reload to continue.', 'Close');
+						} else {
+							modal('Error', 'Failed to connect. Reload to try again.', 'Close');
+						}
+					};
+
+					connection.onmessage = function(e) {
+						const data = JSON.parse(e.data);
+						const msg = data.msg;
+
+						switch (data.op) {
+							case 'AUTH_RESPONSE': {
+								if (msg) {
+									saved = msg;
+									updateSettings();
+									authenticate.classList.add('d-none');
+									document.querySelector('#app').classList.remove('d-none');
+								} else {
+									modal('Error', 'Wrong password.', 'Close');
+								}
+
+								break;
+							}
+
+							case 'START': {
+								settings.classList.add('d-none');
+								process.classList.remove('d-none');
+								process.querySelector('textarea').value = '';
+								updateProgressBar(0);
+								process.querySelector('#livePreview img').src = '';
+								process.querySelector('#close').classList.add('d-none');
+								process.querySelector('#stop').classList.remove('d-none');
+								break;
+							}
+
+							case 'STOP': {
+								process.querySelector('#stop').classList.add('d-none');
+								process.querySelector('#close').classList.remove('d-none');
+								break;
+							}
+
+							case 'PROGRESS': {
+								updateProgressBar(msg);
+								break;
+							}
+
+							case 'CONSOLE': {
+								const console = process.querySelector('textarea');
+								const scroll = console.scrollTop + console.clientHeight >= console.scrollHeight;
+								console.value += msg;
+
+								if (scroll) {
+									console.scrollTop = console.scrollHeight;
+								}
+
+								break;
+							}
+
+							case 'PREVIEW': {
+								process.querySelector('#livePreview img').src = 'data:image/jpeg;base64,' + msg;
+								break;
+							}
+						}
+					};
+				} else {
+					modal('Error', 'Failed to initialize. Reload to try again.', 'Close');
+				}
+			}
+		};
+
+		xhr.send();
+
+		authenticate.querySelector('form').addEventListener('submit', function(e) {
+			e.preventDefault();
+			send('AUTH', this.querySelector('#password').value);
+		});
+
+		settings.querySelector('#load').addEventListener('click', function() {
+			const name = settings.querySelector('#savedSettings').value;
+
+			if (name) {
+				const params = saved[name];
+
+				Object.keys(params).forEach(function(param) {
+					settings.querySelector('#' + param).value = params[param];
+				});
+
+				settings.querySelector('#settingsName').value = name;
+			}
+		});
+
+		settings.querySelector('#delete').addEventListener('click', function() {
+			const name = settings.querySelector('#savedSettings').value;
+
+			if (name) {
+				delete saved[name];
+				updateSettings();
+				send('DELETE', name);
+			}
+		});
+
+		settings.querySelector('form').addEventListener('submit', function(e) {
+			e.preventDefault();
+			const name = settings.querySelector('#settingsName').value;
+			const params = {};
+
+			['minDistance', 'maxDistance', 'numPositions', 'numSpins'].forEach(function(param) {
+				params[param] = settings.querySelector('#' + param).value;
+			});
+
+			saved[name] = params;
+			updateSettings();
+			send('SAVE', { name: name, params: params });
+		});
+
+		settings.querySelectorAll('#test,#start').forEach(function(btn) {
+			btn.addEventListener('click', function() {
+				const minDistance = settings.querySelector('#minDistance').value;
+
+				if (!minDistance.length || !/^\d+(\.\d+)?$/.test(minDistance)) {
+					modal('Error', '<p>Please enter the minimum camera distance to object in meters.</p><p><i>Example: 0.2</i></p>', 'Close');
+					return;
+				}
+
+				const maxDistance = settings.querySelector('#maxDistance').value;
+
+				if (!maxDistance.length || !/^\d+(\.\d+)?$/.test(maxDistance)) {
+					modal('Error', '<p>Please enter the maximum camera distance to object in meters.</p><p><i>Example: 0.2</i></p>', 'Close');
+					return;
+				}
+
+				const numPositions = settings.querySelector('#numPositions').value;
+
+				if (!numPositions.length || !/^[1-9]\d*$/.test(numPositions)) {
+					modal('Error', '<p>Please enter the number of robot positions.</p><p><i>Example: 15</i></p>', 'Close');
+					return;
+				}
+
+				const numSpins = settings.querySelector('#numSpins').value;
+
+				if (!numSpins.length || !/^[1-9]\d*$/.test(numSpins)) {
+					modal('Error', '<p>Please enter the number of turntable spins.</p><i>Example: 8</i></p>', 'Close');
+					return;
+				}
+
+				const workingDir = settings.querySelector('#workingDir').value;
+
+				if (!workingDir.length || !/^[0-9A-Za-z]*$/.test(workingDir)) {
+					modal('Error', 'Please enter the working directory (only latin letters and numbers).', 'Close');
+					return;
+				}
+
+				const objectWidth = settings.querySelector('#objectWidth').value;
+
+				if (!objectWidth.length || !/^\d+(\.\d+)?$/.test(objectWidth)) {
+					modal('Error', '<p>Please enter the object width in meters.</p><p><i>Example: 0.2</i></p>', 'Close');
+					return;
+				}
+
+				const objectLength = settings.querySelector('#objectLength').value;
+
+				if (!objectLength.length || !/^\d+(\.\d+)?$/.test(objectWidth)) {
+					modal('Error', '<p>Please enter the object length in meters.</p><p><i>Example: 0.2</i></p>', 'Close');
+					return;
+				}
+
+				const objectHeight = settings.querySelector('#objectHeight').value;
+
+				if (!objectHeight.length || !/^\d+(\.\d+)?$/.test(objectWidth)) {
+					modal('Error', '<p>Please enter the object height in meters.</p><p><i>Example: 0.2</i></p>', 'Close');
+					return;
+				}
+
+				send('START', { workingDir: workingDir, '_min_distance': minDistance, '_max_distance': maxDistance, '_num_positions': numPositions, '_num_spins': numSpins, '_object_size': '[' + objectWidth + ', ' + objectLength + ', ' + objectHeight + ']', '_simulation': settings.querySelector('#simulation').checked, '_test': this.id == 'test' });
+			});
+		});
+
+		process.querySelector('#close').addEventListener('click', function() {
+			process.classList.add('d-none');
+			settings.classList.remove('d-none');
+		});
+
+		process.querySelector('#stop').addEventListener('click', function() {
+			send('STOP');
+		});
+		</script>
+	</body>
+</html>

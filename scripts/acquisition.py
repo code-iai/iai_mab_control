@@ -63,7 +63,7 @@ def init():
     scene = PlanningSceneInterface(synchronous=True)
 
     try:
-        st_control = load_source('st_control', RosPack().get_path('iai_scanning_table') + '/scripts/iai_scanning_table/st_control.py')
+        st_control = load_source('st_control', os.path.join(RosPack().get_path('iai_scanning_table'), 'scripts', 'iai_scanning_table', 'st_control.py'))
         turntable = st_control.ElmoUdp()
         if turntable.check_device():
             turntable.configure()
@@ -77,7 +77,7 @@ def init():
         move_home()
     elif turntable is None:
         sys.exit('Could not connect to turntable.')
-    elif not camera.init(rospy.get_param('~output_directory', 'out')):
+    elif not camera.init(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'out', rospy.get_param('~output_directory', 'out'), 'images')):
         sys.exit('Could not initialize camera.')
 
     # add ground plane
@@ -346,7 +346,8 @@ if __name__ == '__main__':
                     file = camera.capture()
 
                     if file is not None:
-                        print('preview: ' + file);
+                        print('preview: ' + file)
+                        # TODO check if photogrammetry parameters are given and send capture to photogrammetry server (pass password, capture and working directory)
             set_turntable_deg(0.0, False)
         print('progress: {}'.format(int(float(positions.index(_positions) + 1) / len(positions) * 100)))
         rospy.sleep(1)

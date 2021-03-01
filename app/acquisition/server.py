@@ -113,7 +113,7 @@ class WebSocketHandler(WebSocket):
                 if process is not None:
                     return
 
-                params = ['_output_directory:={}'.format(msg['workingDir'])]
+                params = ['_working_dir:={}'.format(msg['workingDir'])]
 
                 with open(os.path.join(settings_dir, 'general.json')) as f:
                     settings = json.loads(f.read())

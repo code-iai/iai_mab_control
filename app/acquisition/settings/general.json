@@ -7,9 +7,9 @@
     "password": "",
     "photobox_pos": "[-0.01144194664460857, -0.7476403344882813, 0.2295566298588771]",
     "photobox_size": "[0.5782430368392905, 0.8124455124386528, 0.9358845495629308]",
-    "photogrammetry_password": ""
     "photogrammetry_host": "127.0.0.1",
     "photogrammetry_http_port": 9000,
+    "photogrammetry_password": ""
     "reach": "0.85",
     "turntable_pos": "[0.01385938, -0.80377247, 0.29174331]",
     "turntable_radius": "0.261028368167",

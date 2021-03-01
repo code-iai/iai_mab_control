@@ -35,7 +35,39 @@ class HTTPHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body.encode('utf-8'))
         elif self.path == '/save':
-            pass # TODO check given password and save given camera capture (base64 encoded?) in given working directory
+            length = int(self.headers.getheader('Content-Length', 0))
+            body = self.rfile.read(length)
+
+            try:
+                request = json.loads(body)
+                password = request['password']
+            except:
+                self.send_error(400)
+                return
+
+            with open(os.path.join(settings_dir, 'general.json')) as f:
+                if password != json.loads(f.read())['password']:
+                    self.send_error(400)
+                    return
+
+            working_dir = os.path.join(app_dir, '..', '..', 'out', request['workingDir'], 'images')
+
+            if os.path.exists(working_dir):
+                if not os.path.isdir(working_dir): # not a directory
+                    self.send_error(400)
+                    return
+            else:
+                try:
+                    os.makedirs(working_dir)
+                except:
+                    self.send_error(400)
+                    return
+
+            with open(os.path.join(working_dir, request['fileName']), 'wb') as f:
+                f.write(base64.b64decode(request['data']))
+
+            self.send_response(200)
+            self.end_headers()
         else:
             self.send_error(404);
 
@@ -116,7 +148,7 @@ class WebSocketHandler(WebSocket):
                 with open(os.path.join(settings_dir, 'general.json')) as f:
                     settings = json.loads(f.read())
 
-                msg['workingDir'] = os.path.join(app_dir, '..', 'out', msg['workingDir'])
+                msg['workingDir'] = os.path.join(app_dir, '..', '..', 'out', msg['workingDir'])
                 settings['meshroom_dir'] = os.path.expanduser(settings['meshroom_dir'])
 
                 tmp_dir = os.path.join(settings_dir, 'meshroom', 'tmp')

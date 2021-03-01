@@ -8,10 +8,12 @@ from moveit_commander import MoveGroupCommander, PlanningSceneInterface, RobotCo
 from rospkg import RosPack
 from visualization_msgs.msg import Marker, MarkerArray
 
+import base64
 import camera
 import math
 import numpy
 import os
+import requests
 import rospy
 import sys
 import tf
@@ -19,7 +21,7 @@ import tf
 def init():
     global marker_array_pub, marker_pub, tf_broadcaster, tf_listener
     global move_group, turntable
-    global camera_mesh, camera_pos, camera_size, min_distance, max_distance, num_positions, num_spins, object_size, photobox_pos, photobox_size, reach, simulation, test, turntable_pos
+    global camera_mesh, camera_pos, camera_size, min_distance, max_distance, num_positions, num_spins, object_size, photobox_pos, photobox_size, reach, simulation, test, turntable_pos, working_dir
 
     rospy.init_node('acquisition')
 
@@ -77,8 +79,13 @@ def init():
         move_home()
     elif turntable is None:
         sys.exit('Could not connect to turntable.')
-    elif not camera.init(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'out', rospy.get_param('~output_directory', 'out'), 'images')):
-        sys.exit('Could not initialize camera.')
+    else:
+        working_dir = rospy.get_param('~working_dir', None)
+
+        if working_dir is None:
+            sys.exit('Working directory not specified.')
+        elif not camera.init(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'out', working_dir, 'images')):
+            sys.exit('Could not initialize camera.')
 
     # add ground plane
     ps = PoseStamped()
@@ -347,7 +354,20 @@ if __name__ == '__main__':
 
                     if file is not None:
                         print('preview: ' + file)
-                        # TODO check if photogrammetry parameters are given and send capture to photogrammetry server (pass password, capture and working directory)
+                        photogrammetry_host = rospy.get_param('~photogrammetry_host', None)
+                        photogrammetry_http_port = rospy.get_param('~photogrammetry_http_port', None)
+                        photogrammetry_password = rospy.get_param('~photogrammetry_password', None)
+
+                        if photogrammetry_host is not None and photogrammetry_http_port is not None and photogrammetry_password is not None:
+                            with open(file, 'rb') as f:
+                                if requests.post('http://' + photogrammetry_host + ':' + photogrammetry_http_port + '/save', json={
+                                    'password': photogrammetry_password,
+                                    'workingDir': working_dir,
+                                    'fileName': os.path.basename(file),
+                                    'data': base64.b64encode(f.read()).decode('utf-8')
+                                }).status_code != 200:
+                                    print('Failed to transfer capture to photogrammetry server.')
+
             set_turntable_deg(0.0, False)
         print('progress: {}'.format(int(float(positions.index(_positions) + 1) / len(positions) * 100)))
         rospy.sleep(1)

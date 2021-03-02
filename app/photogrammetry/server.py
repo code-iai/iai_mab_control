@@ -116,7 +116,7 @@ class WebSocketHandler(WebSocket):
                     self._send('AUTH_RESPONSE', saved)
 
                     if process is not None:
-                        self._send('START')
+                        self._send('START', None)
                         self._send('PROGRESS', process_progress)
                         self._send('CONSOLE', process_log)
                 else:

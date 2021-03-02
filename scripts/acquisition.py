@@ -356,20 +356,20 @@ if __name__ == '__main__':
                         print('preview: ' + file)
                         photogrammetry_host = rospy.get_param('~photogrammetry_host', None)
                         photogrammetry_http_port = rospy.get_param('~photogrammetry_http_port', None)
-                        photogrammetry_password = rospy.get_param('~photogrammetry_password', None)
+                        photogrammetry_password = rospy.get_param('~photogrammetry_password', '')
 
                         if photogrammetry_host is not None and photogrammetry_http_port is not None and photogrammetry_password is not None:
                             print('Transfering capture to photogrammetry server')
 
                             try:
                                 with open(file, 'rb') as f:
-                                    if requests.post('http://' + photogrammetry_host + ':' + photogrammetry_http_port + '/save', json={
+                                    if requests.post('http://' + photogrammetry_host + ':' + str(photogrammetry_http_port) + '/save', json={
                                         'password': photogrammetry_password,
                                         'workingDir': working_dir,
                                         'fileName': os.path.basename(file),
                                         'data': base64.b64encode(f.read()).decode('utf-8')
                                     }).status_code != 200:
-                                        print('Failed to transfer capture to photogrammetry server.')
+                                        print('Photogrammetry server failed to save capture.')
                             except:
                                 print('Failed to transfer capture to photogrammetry server.')
 

@@ -1,9 +1,6 @@
-import gphoto2 as gp
 import os
 import subprocess
-import time
 
-_camera = None
 
 def _print(msg, prefix = None):
     if prefix is not None:
@@ -11,8 +8,8 @@ def _print(msg, prefix = None):
 
     print('[Camera] {0}'.format(msg))
 
-def init(output_directory):
-    global _output_directory, _camera
+def init(output_directory, ptpip=None):
+    global _output_directory, _process
 
     if os.path.exists(output_directory):
         if not os.path.isdir(output_directory):
@@ -29,39 +26,33 @@ def init(output_directory):
             return False
 
     _output_directory = output_directory
-    camera = gp.Camera()
-    _print('Initializing...')
 
-    try:
-        if os.name == 'posix':
-            subprocess.Popen(['pkill', '-f', 'gphoto2']).wait()
+    if os.name == 'posix':
+        subprocess.Popen(['pkill', '-f', 'gphoto2']).wait()
 
-        camera.init()
-    except gp.GPhoto2Error as err:
-        _print(err, 'Error')
+    args = ['gphoto2']
+    if ptpip:
+        args += ['--port', 'ptpip:{}'.format(ptpip)]
+    args += ['--summary', '--shell']
+
+    _process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, env=dict(os.environ, **dict(PYTHONUNBUFFERED='1')), cwd=_output_directory)
+    line = _process.stdout.readline()
+
+    if line.startswith('connect cmd: No route to host'):
+        _print(line, 'Error')
         return False
 
-    _camera = camera
     return True
 
 def capture():
-    file = None
+    _process.stdin.write('capture-image-and-download\n')
+    while _process.poll() is None:
+        line = _process.stdout.readline()
 
-    if _camera is None:
-        _print('Not initialized', 'Error')
-    else:
-        try:
-            camera_capture = _camera.capture(gp.GP_CAPTURE_IMAGE)
-            file = os.path.join(_output_directory, camera_capture.name)
-            _camera.file_get(camera_capture.folder, camera_capture.name, gp.GP_FILE_TYPE_NORMAL).save(file)
-        except gp.GPhoto2Error as err:
-            _print(err, 'Error')
+        if line.startswith('connect cmd: No route to host'):
+            _print(line, 'Error')
+            return None
 
-    return file
+        if line.startswith('Saving file as'):
+            return os.path.join(_output_directory, line.split(' ')[-1][:-1])
 
-def exit():
-    if _camera is not None:
-        try:
-            _camera.exit()
-        except gp.GPhoto2Error as err:
-            _print(err, 'Error')

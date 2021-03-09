@@ -37,6 +37,7 @@ def init():
     object_size = numpy.array(rospy.get_param('~object_size', [0.2, 0.2, 0.2]))
     photobox_pos = rospy.get_param('~photobox_pos', [0.0, -0.6, 0.0])
     photobox_size = rospy.get_param('~photobox_size', [0.7, 0.7, 1.0])
+    ptpip = rospy.get_param('~ptpip', None)
     reach = rospy.get_param('~reach', 0.85)
     simulation = rospy.get_param('~simulation', True)
     test = rospy.get_param('~test', True)
@@ -79,12 +80,12 @@ def init():
         move_home()
     elif turntable is None:
         sys.exit('Could not connect to turntable.')
-    else:
+    elif not test:
         working_dir = rospy.get_param('~working_dir', None)
 
         if working_dir is None:
             sys.exit('Working directory not specified.')
-        elif not camera.init(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'out', working_dir, 'images')):
+        elif not camera.init(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'out', working_dir, 'images'), ptpip):
             sys.exit('Could not initialize camera.')
 
     # add ground plane
@@ -125,26 +126,6 @@ def init():
     ps.pose.position.y = turntable_pos[1]
     ps.pose.position.z = turntable_pos[2] + object_size[2] / 2
     scene.add_cylinder('object', ps, object_size[2], max(object_size[:2]) / 2)
-
-    # add cable mounts
-    scene.remove_attached_object('upper_arm_link', 'upper_arm_cable_mount')
-    scene.remove_attached_object('forearm_link', 'forearm_cable_mount')
-    scene.remove_world_object('upper_arm_cable_mount')
-    scene.remove_world_object('forearm_cable_mount')
-
-    size = [0.08, 0.08, 0.08]
-
-    ps.header.frame_id = 'upper_arm_link'
-    ps.pose.position.x = -0.13
-    ps.pose.position.y = -0.095
-    ps.pose.position.z = 0.135
-    scene.attach_box(ps.header.frame_id, 'upper_arm_cable_mount', ps, size)
-
-    ps.header.frame_id = 'forearm_link'
-    ps.pose.position.x = -0.275
-    ps.pose.position.y = -0.08
-    ps.pose.position.z = 0.02
-    scene.attach_box(ps.header.frame_id, 'forearm_cable_mount', ps, size)
 
     # add camera
     eef_link = move_group.get_end_effector_link()
@@ -376,5 +357,4 @@ if __name__ == '__main__':
             set_turntable_deg(0.0, False)
         print('progress: {}'.format(int(float(positions.index(_positions) + 1) / len(positions) * 100)))
         rospy.sleep(1)
-    camera.exit()
     move_home()

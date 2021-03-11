@@ -5,6 +5,7 @@ from geometry_msgs.msg import Pose, PoseStamped, Quaternion
 from iai_scanning_table_msgs.msg import scanning_tableAction, scanning_tableGoal
 from imp import load_source
 from moveit_commander import MoveGroupCommander, PlanningSceneInterface, RobotCommander
+from rosnode import get_node_names
 from rospkg import RosPack
 from visualization_msgs.msg import Marker, MarkerArray
 
@@ -39,7 +40,7 @@ def init():
     photobox_size = rospy.get_param('~photobox_size', [0.7, 0.7, 1.0])
     ptpip = rospy.get_param('~ptpip', None)
     reach = rospy.get_param('~reach', 0.85)
-    simulation = rospy.get_param('~simulation', True)
+    simulation = '/gazebo' in get_node_names()
     test = rospy.get_param('~test', True)
     turntable_pos = rospy.get_param('~turntable_pos', photobox_pos[:2] + [photobox_pos[2] + 0.05])
     turntable_radius = rospy.get_param('~turntable_radius', 0.2)
@@ -54,13 +55,6 @@ def init():
     move_group.set_max_acceleration_scaling_factor(1.0 if simulation else max_velocity)
     move_group.set_max_velocity_scaling_factor(1.0 if simulation else max_velocity)
 
-    if not simulation:
-        planner_ids = move_group.get_interface_description().planner_ids
-        if 'manipulator[PRMstarkConfigDefault]' in planner_ids:
-            pass#move_group.set_planner_id('PRMstarkConfigDefault')
-        elif 'manipulator[RRTstarkConfigDefault]' in planner_ids:
-            pass#move_group.set_planner_id('RRTstarkConfigDefault')
-
     robot = RobotCommander()
 
     scene = PlanningSceneInterface(synchronous=True)
@@ -74,12 +68,10 @@ def init():
             turntable.start_controller()
     except Exception as e:
         print(e)
-        turntable = None
+        sys.exit('Could not connect to turntable.')
 
     if simulation:
         move_home()
-    elif turntable is None:
-        sys.exit('Could not connect to turntable.')
     elif not test:
         working_dir = rospy.get_param('~working_dir', None)
 
@@ -126,6 +118,27 @@ def init():
     ps.pose.position.y = turntable_pos[1]
     ps.pose.position.z = turntable_pos[2] + object_size[2] / 2
     scene.add_cylinder('object', ps, object_size[2], max(object_size[:2]) / 2)
+
+    # add cable mounts
+    scene.remove_attached_object('upper_arm_link', 'upper_arm_cable_mount')
+    scene.remove_attached_object('forearm_link', 'forearm_cable_mount')
+    scene.remove_world_object('upper_arm_cable_mount')
+    scene.remove_world_object('forearm_cable_mount')
+
+    if ptpip is None and not simulation:
+        size = [0.08, 0.08, 0.08]
+
+        ps.header.frame_id = 'upper_arm_link'
+        ps.pose.position.x = -0.13
+        ps.pose.position.y = -0.095
+        ps.pose.position.z = 0.135
+        scene.attach_box(ps.header.frame_id, 'upper_arm_cable_mount', ps, size)
+
+        ps.header.frame_id = 'forearm_link'
+        ps.pose.position.x = -0.275
+        ps.pose.position.y = -0.08
+        ps.pose.position.z = 0.02
+        scene.attach_box(ps.header.frame_id, 'forearm_cable_mount', ps, size)
 
     # add camera
     eef_link = move_group.get_end_effector_link()

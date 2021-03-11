@@ -86,10 +86,6 @@
 						<input type="text" class="form-control" id="objectHeight" placeholder="Object height in meters">
 						<label for="objectHeight">Object height in meters</label>
 					</div>
-					<div class="form-check mb-3">
-						<input type="checkbox" class="form-check-input" id="simulation">
-						<label class="form-check-label" for="simulation">Simulation</label>
-					</div>
 					<button class="btn btn-secondary me-3" id="test">Test</button><button class="btn btn-primary" id="start">Start</button>
 				</div>
 				<div class="d-none" id="process">
@@ -344,7 +340,7 @@
 					return;
 				}
 
-				send('START', { workingDir: workingDir, '_min_distance': minDistance, '_max_distance': maxDistance, '_num_positions': numPositions, '_num_spins': numSpins, '_object_size': '[' + objectWidth + ', ' + objectLength + ', ' + objectHeight + ']', '_simulation': settings.querySelector('#simulation').checked, '_test': this.id == 'test' });
+				send('START', { workingDir: workingDir, '_min_distance': minDistance, '_max_distance': maxDistance, '_num_positions': numPositions, '_num_spins': numSpins, '_object_size': '[' + objectWidth + ', ' + objectLength + ', ' + objectHeight + ']', '_test': this.id == 'test' });
 			});
 		});
 

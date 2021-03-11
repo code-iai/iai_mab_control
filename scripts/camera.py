@@ -2,7 +2,7 @@ from multiprocessing import Manager, Process
 
 import os
 import subprocess
-
+import time
 
 def _print(msg, prefix = None):
     if prefix is not None:
@@ -49,30 +49,34 @@ def init(output_directory, ptpip=None):
     if os.name == 'posix':
         subprocess.Popen(['pkill', '-f', 'gphoto2']).wait()
 
-    args = ['gphoto2']
+    args = ['gphoto2', '--port']
     if ptpip:
-        args += ['--port', 'ptpip:{}'.format(ptpip)]
+        args.append('ptpip:{}'.format(ptpip))
+    else:
+        args.append('usb:')
     args += ['--summary', '--shell']
 
     _process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, env=dict(os.environ, **dict(PYTHONUNBUFFERED='1')), cwd=_output_directory)
     line = readline()
 
-    if line is None or line.startswith('connect cmd: No route to host'):
+    if line is None or line.startswith('connect cmd:') or _process.poll() is not None:
         _print('Could not connect to camera', 'Error')
         return False
 
     return True
 
 def capture():
+    now = time.time()
     _process.stdin.write('capture-image-and-download\n')
     line = readline()
 
     while line is not None:
-        if line.startswith('Saving file as'):
-            return os.path.join(_output_directory, line.split(' ')[-1][:-1])
+        for file in os.listdir(_output_directory):
+            path = os.path.join(_output_directory, file)
+            if os.stat(path).st_mtime > now:
+                return path
 
         line = readline()
 
     _print('Capture failed', 'Error')
     return None
-

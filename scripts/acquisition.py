@@ -66,6 +66,7 @@ def init():
             turntable.configure()
             turntable.reset_encoder()
             turntable.start_controller()
+            turntable.set_speed_deg(30)
     except Exception as e:
         print(e)
         sys.exit('Could not connect to turntable.')
@@ -278,7 +279,6 @@ def set_turntable_deg(deg, wait=True):
     if simulation:
         return True
 
-    turntable.set_speed_deg(30)
     turntable.move_to_deg(deg)
 
     return turntable.wait_to_reach_target() if wait else True
@@ -357,13 +357,20 @@ if __name__ == '__main__':
 
                             try:
                                 with open(file, 'rb') as f:
-                                    if requests.post('http://' + photogrammetry_host + ':' + str(photogrammetry_http_port) + '/save', json={
-                                        'password': photogrammetry_password,
-                                        'workingDir': working_dir,
-                                        'fileName': os.path.basename(file),
-                                        'data': base64.b64encode(f.read()).decode('utf-8')
-                                    }).status_code != 200:
-                                        print('Photogrammetry server failed to save capture.')
+                                    data = base64.b64encode(f.read()).decode('utf-8')
+
+                                if requests.post('http://' + photogrammetry_host + ':' + str(photogrammetry_http_port) + '/save', json={
+                                    'password': photogrammetry_password,
+                                    'workingDir': working_dir,
+                                    'fileName': os.path.basename(file),
+                                    'data': data
+                                }).status_code == 200:
+                                    try:
+                                        os.remove(file)
+                                    except:
+                                        pass
+                                else:
+                                    print('Photogrammetry server failed to save capture.')
                             except:
                                 print('Failed to transfer capture to photogrammetry server.')
 

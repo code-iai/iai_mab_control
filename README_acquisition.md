@@ -183,6 +183,8 @@ $ roscd iai_mab_control
 $ app/acquisition/server.py --http_port 9000 --socket_port 9090
 ```
 
+When controlling the Nikon Z6 II without cable, the hotspot has to be enabled on the camera device and the computer has to establish an additional WiFi connection to it before starting the process from the acquisition application.
+
 ## Calibration
 
 The photobox and turntables size and position can be determined using the calibration script. The user will be asked to attach the [calibration tool](https://github.com/code-iai/iai_mab_control/blob/devel/assets/calibration_tool.stl) to the robot arm and move the tip of the calibration tool to given [points](https://github.com/code-iai/iai_mab_control/blob/devel/assets/calibration.jpg). The sizes and positions are being calculated and printed by the calibration script.

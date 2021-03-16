@@ -17,7 +17,7 @@ $ pip install simple-websocket-server
 Once all requirements are taken care of simply clone the repository.
 
 ```
-$ git clone -b devel https://github.com/code-iai/iai_mab_control.git
+$ git clone https://github.com/code-iai/iai_mab_control.git
 ```
 
 ## Configuration

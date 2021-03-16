@@ -30,9 +30,11 @@ For keyboard control the **keyboard_pub** package is needed. This can be found h
 
 It is to be placed inside _~/catkin_ws/src/ubiquitousROS/_.
 
-For the bot to take photos using the Nikon Z6 II camera which is mounted on the UR5 **python-gphoto2** is required. For installation instructions follow: https://pypi.org/project/gphoto2/
+For the bot to take photos using the Nikon Z6 II camera which is mounted on the UR5 **gphoto2** is required. It should already be included in the Desktop-Full Install of ROS Melodic, otherwise it can be installed using _apt_.
 
-We recommend the installation using _pip_. Note that the dependency **libgphoto2-devel** is already included in the Desktop-Full Install of ROS Melodic and thus might not have to be installed manually.
+```
+$ apt install gphoto2
+```
 
 The Graphical User Interface uses WebSockets for communication between frontend and backend. For this the backend uses the **simple-websocket-server** which can be installed using _pip_.
 
@@ -52,7 +54,7 @@ Once all requirements are taken care of simply clone the repository inside _~/ca
 
 ```
 $ cd ~/catkin_ws/src
-$ git clone -b devel https://github.com/code-iai/iai_mab_control.git
+$ git clone https://github.com/code-iai/iai_mab_control.git
 $ cd ..
 $ sudo apt update
 $ rosdep update

@@ -175,7 +175,7 @@ When controlling the Nikon Z6 II without cable, the hotspot has to be enabled on
 
 ## Calibration
 
-The photobox and turntables size and position can be determined using the calibration script. The user will be asked to attach the [calibration tool](https://github.com/code-iai/iai_mab_control/blob/devel/assets/calibration_tool.stl) to the robot arm and move the tip of the calibration tool to given [points](https://github.com/code-iai/iai_mab_control/blob/devel/assets/calibration.jpg). The sizes and positions are being calculated and printed by the calibration script.
+The photobox and turntables size and position can be determined using the calibration script. The user will be asked to attach the [calibration tool](https://github.com/code-iai/iai_mab_control/blob/main/assets/calibration_tool.stl) to the robot arm and move the tip of the calibration tool to given [points](https://github.com/code-iai/iai_mab_control/blob/main/assets/calibration.jpg). The sizes and positions are being calculated and printed by the calibration script.
 
 The calibration script can be started using _rosrun_.
 

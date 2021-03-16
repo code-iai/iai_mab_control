@@ -153,20 +153,6 @@ _simulation.launch_ launches all the required nodes for the usage in Gazebo.
 $ roslaunch iai_mab_control simulation.launch
 ```
 
-### Keyboard control
-
-_keyboard_controller.launch_ launches a keyboard controller.
-
-```
-$ roslaunch iai_mab_control keyboard_controller.launch
-```
-
-If the bot is used in simulation the additional parameters _simulation_ and _command_topic_ can be passed.
-
-```
-$ roslaunch iai_mab_control keyboard_controller.launch simulation:=True command_topic:=arm_controller/command
-```
-
 ## Graphical User Interface (GUI)
 
 To use the GUI the server of the application needs to be started first.

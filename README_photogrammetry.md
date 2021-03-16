@@ -26,7 +26,7 @@ While some settings can be configured in the Graphical User Interface, some more
 
 | Parameter | Description | Example |
 |-|-|-|
-| meshroom_dir | Path of the Meshroom application. | C:\\Meshroom |
+| meshroom_dir | Path of the Meshroom application. | C:\\\\Meshroom |
 | password | A password to access the application. Optional. | 654321 |
 
 ## Graphical User Interface (GUI)

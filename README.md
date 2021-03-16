@@ -11,8 +11,8 @@ MAB is a bot to automatically create a 3D model of an object which was previousl
 
 ## Acquisition
 
-For setup and usage instructions on the model acquisition part head over to https://github.com/code-iai/iai_mab_control/blob/devel/README_acquisition.md
+For setup and usage instructions on the model acquisition part head over to https://github.com/code-iai/iai_mab_control/blob/main/README_acquisition.md
 
 ## Photogrammetry
 
-For setup and usage instructions on the photogrammetry part head over to https://github.com/code-iai/iai_mab_control/blob/devel/README_photogrammetry.md
+For setup and usage instructions on the photogrammetry part head over to https://github.com/code-iai/iai_mab_control/blob/main/README_photogrammetry.md

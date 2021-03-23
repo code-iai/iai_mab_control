@@ -134,7 +134,7 @@ The following optional parameters can be set by adding them to the _rosrun_ comm
 | wall_thickness | The thickness of the photobox walls in meters. | _wall_thickness:=0.04 |
 | working_dir | The directory (inside the `out` directory in the root project directory) to store captured photos into. | _output_directory:='my_model' |
 
-The easiest way to work with the bot during development is to use the provided launch files.
+The easiest way to work with the bot during development is to use the provided launch files. When using the launch files RViz will also start with pre-configured MoveIt settings for additional visualization purpose. If needed one can add **MarkerArray** visualization to see the positions the robot is addressing.
 
 ### Bringup
 
@@ -171,7 +171,7 @@ $ roscd iai_mab_control
 $ app/acquisition/server.py --http_port 9000 --socket_port 9090
 ```
 
-When controlling the Nikon Z6 II without cable, the hotspot has to be enabled on the camera device and the computer has to establish an additional WiFi connection to it before starting the process from the acquisition application.
+When working with the Nikon Z6 II we figured that setting the AF-area mode to **Wide-area AF (L)** works best. Also when controlling the Nikon Z6 II without cable, the hotspot has to be enabled on the camera device and the computer has to establish an additional WiFi connection to it before starting the process from the acquisition application.
 
 ## Calibration
 
